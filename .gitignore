@@ -3,3 +3,7 @@
 ################################################################################
 
 /.vs/libdr4w/v16
+/Build/Obj/Debug
+/libdr4w/.vs/libdr4w/v16
+/libdr4w/libdr4w.vcxproj.user
+/.vs

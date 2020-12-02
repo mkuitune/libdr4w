@@ -1,0 +1,2 @@
+G:/wrk/koodia/libdr4w/external/glm/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
+G:/wrk/koodia/libdr4w/external/glm/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir

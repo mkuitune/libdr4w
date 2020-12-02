@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30621.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdr4w", "libdr4w\libdr4w.vcxproj", "{DF279B92-FEA0-4E4F-8384-40B694BD98AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{B9B336DD-5AED-4FE6-971C-3CA408D0FE83}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Debug|x64.ActiveCfg = Debug|x64
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Debug|x64.Build.0 = Debug|x64
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Debug|x86.ActiveCfg = Debug|Win32
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Debug|x86.Build.0 = Debug|Win32
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Release|x64.ActiveCfg = Release|x64
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Release|x64.Build.0 = Release|x64
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Release|x86.ActiveCfg = Release|Win32
+		{DF279B92-FEA0-4E4F-8384-40B694BD98AB}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0628B25C-4993-483D-BD95-E360257B0989}
+	EndGlobalSection
+EndGlobal
