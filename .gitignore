@@ -7,3 +7,4 @@
 /libdr4w/.vs/libdr4w/v16
 /libdr4w/libdr4w.vcxproj.user
 /.vs
+/test/tests/x64/Debug
