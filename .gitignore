@@ -8,3 +8,4 @@
 /libdr4w/libdr4w.vcxproj.user
 /.vs
 /test/tests/x64/Debug
+/Build/Debug
