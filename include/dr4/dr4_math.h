@@ -13,6 +13,60 @@
 
 namespace dr4 {
 
+	struct MaximumElementf {
+		enum Dimension {DIM_0, DIM_1, DIM_2, DIM_3};
+		float value;
+		Dimension dimension;
+	};
+
+	template<class XYZ>
+	MaximumElementf MaximumElement3D(const XYZ& v ){
+		MaximumElementf m = { v.x, MaximumElementf::DIM_0 };
+		if (m.value > v.y)
+			m = { v.y,  MaximumElementf::DIM_1};
+		if(m.value > v.z)
+			m = { v.z,  MaximumElementf::DIM_2};
+		return m;
+	}
+	
+	template<class XY>
+	MaximumElementf MaximumElement2D(const XY& v ){
+		MaximumElementf m = { v.x, MaximumElementf::DIM_0 };
+		if (m.value > v.y)
+			m = { v.y, MaximumElementf::DIM_1};
+		return m;
+	}
+
+	//
+	// Normalized number type
+	//
+	template<class T>
+	class Normalized {
+		T m_value;
+	public:
+
+		constexpr static T Zero() { return (T)0; }
+		constexpr static T One() { return (T)1; }
+
+		Normalized() {
+			m_value = Zero();
+		}
+		Normalized(const T& v) {
+			m_value = (v < Zero()) ? Zero() : (v > One() ? One() : v);
+		}
+		Normalized& operator=(const T& v) {
+			m_value = (v < Zero()) ? Zero() : (v > One() ? One() : v);
+			return *this;
+		}
+		T value() const noexcept { 
+			return m_value;
+		};
+	};
+
+	//
+	// Utility functions
+	//
+
 	inline float lerp(float src, float dst, float u){
 		return (1.0f - u) * src + u * dst;
 	}

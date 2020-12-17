@@ -48,6 +48,21 @@
     <ClInclude Include="..\include\dr4\dr4_io.h">
       <Filter>include/dr4w</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_scene2d.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_rasterizer.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_unitvector2f.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_camera.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_scene3d.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dr4_image.cpp">
@@ -63,6 +78,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dr4_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dr4_rasterizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dr4_scene2d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dr4_camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
