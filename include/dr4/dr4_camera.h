@@ -31,6 +31,13 @@ namespace dr4 {
 		float scale;
 		glm::vec2 center;
 		// The 'up' is always y-up
+
+		static Camera2D Default(){
+			Camera2D cam;
+			cam.scale = 1.0f;
+			cam.center = {0.0f, 0.0f};
+			return cam;
+		}
 	};
 
 	struct ViewSetup2D {

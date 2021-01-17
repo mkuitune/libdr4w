@@ -19,7 +19,7 @@ namespace dr4 {
 	uint8_t LinearFloatToSRGBUint8(const float f);
 	float SRGBUint8ToLinearFloat(const uint8_t u);
 
-	ImageRGBA8SRGB convertToSrgb(const ImageRGBA32Linear& linear);
+	ImageRGBA8SRGB convertRBGA32LinearToSrgb(const ImageRGBA32Linear& linear);
 	ImageRGBA32Linear convertToLinear(const ImageRGBA8SRGB& srgb);
 
 	std::string writeImageAsPng(const ImageRGBA8SRGB& image, const char* pathStr);

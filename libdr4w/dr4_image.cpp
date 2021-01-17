@@ -62,7 +62,7 @@ float dr4::SRGBUint8ToLinearFloat(const uint8_t u) {
 	return stbir__srgb_uchar_to_linear_float[u];
 }
 
-dr4::ImageRGBA8SRGB dr4::convertToSrgb(const ImageRGBA32Linear& linear)
+dr4::ImageRGBA8SRGB dr4::convertRBGA32LinearToSrgb(const ImageRGBA32Linear& linear)
 {
 	ImageRGBA8SRGB res(linear.size());
 	auto seq = make_seq(linear.elementCount());

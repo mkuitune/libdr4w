@@ -63,6 +63,12 @@
     <ClInclude Include="..\include\dr4\dr4_scene3d.h">
       <Filter>include/dr4w</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_task.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_quadtree.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dr4_image.cpp">
@@ -87,6 +93,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dr4_camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dr4_task.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dr4_quadtree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
