@@ -170,6 +170,7 @@
     <ClInclude Include="..\include\dr4\dr4_quadtree.h" />
     <ClInclude Include="..\include\dr4\dr4_rand.h" />
     <ClInclude Include="..\include\dr4\dr4_rasterizer.h" />
+    <ClInclude Include="..\include\dr4\dr4_rasterizer_algorithms.h" />
     <ClInclude Include="..\include\dr4\dr4_scene2d.h" />
     <ClInclude Include="..\include\dr4\dr4_scene3d.h" />
     <ClInclude Include="..\include\dr4\dr4_task.h" />
@@ -187,6 +188,7 @@
     <ClCompile Include="dr4_math.cpp" />
     <ClCompile Include="dr4_quadtree.cpp" />
     <ClCompile Include="dr4_rasterizer.cpp" />
+    <ClCompile Include="dr4_rasterizer_algorithms.cpp" />
     <ClCompile Include="dr4_scene2d.cpp" />
     <ClCompile Include="dr4_task.cpp" />
   </ItemGroup>

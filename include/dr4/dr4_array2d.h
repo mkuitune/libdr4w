@@ -87,6 +87,7 @@ namespace dr4 {
 
 		void set(size_t x, size_t y, const T& value) noexcept { m_data[index2d(x, y)] = value; }
 		void set(const PairIdx& idx, const T& value) { set(idx.x, idx.y, value); }
+
 		void setAll(const T& value) {
 			for (auto& v : m_data) v = value;
 		}
