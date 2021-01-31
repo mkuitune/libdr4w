@@ -17,12 +17,9 @@ namespace dr4 {
             m_img.set((unsigned int)x, height - (unsigned int)y - 1, color);
         }
         
-        inline void SetPixeli(int x, int y, const dr4::SRGBA& color)
+        inline void SetPixeli(unsigned x, unsigned y, const dr4::SRGBA& color)
         {
-            if (x < 0 || y < 0)
-                return;
-
-            m_img.set((unsigned)x, (unsigned)(height - y - 1), color);
+            m_img.set(x, (height - y - 1), color);
         }
 
         inline void SetPixelNatural(float x, float y, const dr4::SRGBA& color)
@@ -47,7 +44,7 @@ namespace dr4 {
         static void DrawTriangle2(Painter& p, const SRGBA& color1, float x1, float y1,
             float x2, float y2, float x3, float y3);
        
-        // halfspace with row differentials
+        // halfspace with incremental row differentials
         static void DrawTriangle3(Painter& p, const SRGBA& color1, float x1, float y1,
             float x2, float y2, float x3, float y3);
     };

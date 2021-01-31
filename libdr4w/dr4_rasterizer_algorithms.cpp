@@ -174,11 +174,15 @@ dr4::Razz::DrawTriangle2(dr4::Painter& ptr, const SRGBA& color1, float x1, float
 	float x2, float y2,
 	float x3, float y3)
 {
-	// TODO CLIP BOUNDS
 	int minx = (int)std::min(std::min(x1, x2), x3);
 	int miny = (int)std::min(std::min(y1, y2), y3);
 	int maxx = (int)std::max(std::max(x1, x2), x3);
 	int maxy = (int)std::max(std::max(y1, y2), y3);
+
+	minx = std::max(0, minx);
+	miny = std::max(0, miny);
+	maxx = std::min((int)ptr.m_img.dim1() - 1, maxx);
+	maxy = std::min((int)ptr.m_img.dim2() - 1, maxy);
 
 	float ex1 = x2 - x1;
 	float ey1 = y2 - y1;
@@ -189,8 +193,10 @@ dr4::Razz::DrawTriangle2(dr4::Painter& ptr, const SRGBA& color1, float x1, float
 	float ex3 = x1 - x3;
 	float ey3 = y1 - y3;
 
-	for (int y = miny; y <= maxy; y++) {
-		for (int x = minx; x <= maxx; x++){
+	unsigned umaxx = maxx;
+	unsigned umaxy = maxy;
+	for (unsigned y = miny; y <= umaxy; y++) {
+		for (unsigned x = minx; x <= umaxx; x++){
 			float p1 = Pd(ex1, ey1, x - x1, y - y1);
 			float p2 = Pd(ex2, ey2, x - x2, y - y2);
 			float p3 = Pd(ex3, ey3, x - x3, y - y3);
@@ -199,38 +205,56 @@ dr4::Razz::DrawTriangle2(dr4::Painter& ptr, const SRGBA& color1, float x1, float
 		}
 	}
 }
+
+#define F_IK(ix_, iy_, kx_, ky_, px_, py_) \
+(kx_ -ix_) * py_ + (iy_ - ky_) * px_ + (ix_ * ky_ - iy_ * kx_)
 
 void
 dr4::Razz::DrawTriangle3(dr4::Painter& ptr, const SRGBA& color1, float x1, float y1,
 	float x2, float y2,
 	float x3, float y3)
 {
-	// TODO CLIP BOUNDS
 	int minx = (int)std::min(std::min(x1, x2), x3);
 	int miny = (int)std::min(std::min(y1, y2), y3);
 	int maxx = (int)std::max(std::max(x1, x2), x3);
 	int maxy = (int)std::max(std::max(y1, y2), y3);
 
-	float ex1 = x2 - x1;
-	float ey1 = y2 - y1;
-	
-	float ex2 = x3 - x2;
-	float ey2 = y3 - y2;
-	
-	float ex3 = x1 - x3;
-	float ey3 = y1 - y3;
+	minx = std::max(0, minx);
+	miny = std::max(0, miny);
+	maxx = std::min((int)ptr.m_img.dim1() - 1, maxx);
+	maxy = std::min((int)ptr.m_img.dim2() - 1, maxy);
+	unsigned umaxx = maxx;
+	unsigned umaxy = maxy;
+	unsigned y = miny;
+	unsigned x = minx;
 
-	for (int y = miny; y <= maxy; y++) {
-		for (int x = minx; x <= maxx; x++){
-			float p1 = Pd(ex1, ey1, x - x1, y - y1);
-			float p2 = Pd(ex2, ey2, x - x2, y - y2);
-			float p3 = Pd(ex3, ey3, x - x3, y - y3);
-			if (p1 >= 0.f && p2 >= 0.f && p3 >= 0.f)
+	if (x == umaxx || y == umaxy) return;
+
+	//float cy1 = F_IK(x1, y1, x2, y2, minx, miny);
+	//float cy2 = F_IK(x2, y2, x3, y3, minx, miny);
+	//float cy3 = F_IK(x3, y3, x1, y1, minx, miny);
+
+	const float I12 = y1 - y2;
+	const float I23 = y2 - y3;
+	const float I31 = y3 - y1;
+	const float J12 = x2 - x1;
+	const float J23 = x3 - x2;
+	const float J31 = x1 - x3;
+
+	float cy1 = I12 * minx + J12 * miny + (x1 * y2 - y1 * x2);
+	float cy2 = I23 * minx + J23 * miny + (x2 * y3 - y2 * x3);
+	float cy3 = I31 * minx + J31 * miny + (x3 * y1 - y3 * x1);
+
+	for (y = miny; y <= umaxy; y++) {
+		float cx1 = cy1; float cx2 = cy2; float cx3 = cy3;
+		for (x = minx; x <= umaxx; x++){
+			if (cx1 >= 0.f && cx2 >= 0.f && cx3 >= 0.f)
 				ptr.SetPixeli(x, y, color1);
+			cx1 += I12; cx2 += I23; cx3 += I31;
 		}
+		cy1 += J12; cy2 += J23; cy3 += J31;
 	}
 }
-
 
 void dr4::Razz::DrawLine(Painter& ptr, SRGBA color, float x1, float y1, float x2, float y2) {
 	float xdiff = (x2 - x1);

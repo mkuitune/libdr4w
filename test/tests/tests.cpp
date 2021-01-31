@@ -162,16 +162,18 @@ void testTriangles1() {
 
     image.setAll(background);
     Razz::DrawTriangle(ptr, black, 10, 10, 30,10, 20, 30);
-    //Razz::DrawTriangle(img, );
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
     writeImageAsPng(image, "testTriangles1.png");
 
     image.setAll(background);
     Razz::DrawTriangle2(ptr, black, 10, 10, 30,10, 20, 30);
-    //Razz::DrawTriangle(img, );
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
     writeImageAsPng(image, "testTriangles2.png");
 
+    image.setAll(background);
+    Razz::DrawTriangle3(ptr, black, 10, 10, 30,10, 20, 30);
+    Razz::DrawLine(ptr, red, 10, 10, 30, 30);
+    writeImageAsPng(image, "testTriangles3.png");
 
 }
 

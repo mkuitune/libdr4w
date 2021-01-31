@@ -1,0 +1,5 @@
+31/1/21
+-------
+* Implement safeguards to triangle rasterization to put pixels only within target texture
+* Implement halfspace triangle rasterization with incremental row differentials.
+
