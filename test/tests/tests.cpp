@@ -13,6 +13,7 @@ using namespace std;
 #include <dr4/dr4_rasterizer.h>
 #include <dr4/dr4_rasterizer_algorithms.h>
 #include <dr4/dr4_task.h>
+#include <dr4/dr4_quadtree.h>
 
 //------------------------------------------------------
 // Test utilites. Figure out what to do with these
@@ -174,7 +175,47 @@ void testTriangles1() {
     Razz::DrawTriangle3(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
     writeImageAsPng(image, "testTriangles3.png");
+}
 
+void test2DSDF1() {
+    using namespace dr4;
+    using namespace std;
+    const int w = 256;
+    const int h = 256;
+    ImageRGBA8SRGB image(w, h);
+    SRGBA background = { 255u,255u,255u,255u};
+    SRGBA black= { 0u, 0u, 0u, 255u };
+    SRGBA red = { 255u, 0u, 0u, 255u };
+    SRGBA blue = { 0u, 0u, 255u, 255u };
+
+    Painter ptr(image);
+    image.setAll(background);
+
+    Polygon2D polygon = { {{{10.f, 10.f}, {50.f, 10.f}, {30.f, 30.f}}} };
+    Polygon2D polygon2 = { {{{200.f, 200.f}, {50.f, 200.f}, {125.f, 50.f}}} };
+
+    for (auto line : polygon) {
+        Razz::DrawLine(ptr, red, line.fst,line.snd);
+    }
+    for (auto line : polygon2) {
+        Razz::DrawLine(ptr, blue, line.fst,line.snd);
+
+    writeImageAsPng(image, "test2DSDF1_1.png");
+
+    //
+    // ASDF test - use pixel coordinates for tree to simplify initial testing
+    //
+    float din = (float) max(w, h);
+    float xin = 0.0f;
+    float yin = 0.0f;
+    FieldQuadtreeBuilder builder(xin, yin, din);
+
+    // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
+    for (auto line : polygon) {
+
+    }
+
+    image.setAll(background);
 }
 
 int main()
@@ -184,6 +225,7 @@ int main()
     testDrawRandDots();
     testDrawRandLines();
     testTriangles1();
+    test2DSDF1();
     return 0;
 }
 

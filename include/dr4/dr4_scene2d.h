@@ -1,9 +1,13 @@
+//
+// Scene management related definitions
+//
 #pragma once
 
 #include <dr4/dr4_unitvector2f.h>
 #include <dr4/dr4_tuples.h>
 #include <dr4/dr4_math.h>
 #include <dr4/dr4_color.h>
+#include <dr4/dr4_shapes.h>
 
 #include <memory>
 #include <vector>
@@ -11,19 +15,14 @@
 
 namespace dr4 {
 
-	struct Line2D {
-		Pairf fst;
-		Pairf snd;
-	};
-
-	struct Line2DCollection{
+	struct Line2DCollection {
 		std::vector<Line2D> lines;
 		size_t material;
 		void append(Line2D line) { lines.push_back(line); }
 	};
 
 	struct Blend {
-		enum class Type {Default};
+		enum class Type { Default };
 		Type type;
 		Normalized<float> opacity;
 
@@ -45,7 +44,7 @@ namespace dr4 {
 		RGBAFloat32 color;
 	};
 
-	enum class Content2D {Fill, Lines};
+	enum class Content2D { Fill, Lines };
 
 	struct Graphics2DElement {
 		Content2D content; // refers content type
@@ -58,7 +57,7 @@ namespace dr4 {
 	};
 
 	struct ScalarPresentation {
-		enum class Unit {Cm, Mm, Meter};
+		enum class Unit { Cm, Mm, Meter };
 		float scale;
 		Unit dimension;
 

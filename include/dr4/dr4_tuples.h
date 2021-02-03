@@ -8,7 +8,9 @@
 
 namespace dr4
 {
-	struct Pairf { float x, y; };
+	struct Pairf {
+		float x, y; 
+	};
 
 	struct PairIdx { size_t x, y; };
 

@@ -36,6 +36,9 @@ namespace dr4 {
     class Razz {
     public:
         static void DrawLine(Painter& p, SRGBA color, float x1, float y1, float x2, float y2);
+        static void DrawLine(Painter& p, SRGBA color, Pairf fst, Pairf snd){
+            DrawLine(p, color, fst.x, fst.y, snd.x, snd.y);
+        }
 
         static void DrawTriangle(Painter& p, const SRGBA& color1, float x1, float y1,
             float x2, float y2, float x3, float y3);
