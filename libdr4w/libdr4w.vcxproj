@@ -184,6 +184,7 @@
   <ItemGroup>
     <ClCompile Include="dr4_camera.cpp" />
     <ClCompile Include="dr4_color.cpp" />
+    <ClCompile Include="dr4_distance.cpp" />
     <ClCompile Include="dr4_geometryresult.cpp" />
     <ClCompile Include="dr4_image.cpp" />
     <ClCompile Include="dr4_io.cpp" />

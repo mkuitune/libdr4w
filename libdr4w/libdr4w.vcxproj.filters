@@ -113,5 +113,8 @@
     <ClCompile Include="dr4_rasterizer_algorithms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dr4_distance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

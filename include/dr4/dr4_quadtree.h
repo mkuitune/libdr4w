@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <stack>
 
+#include <dr4/dr4_math.h>
+
 namespace dr4 {
 
 
@@ -74,10 +76,6 @@ namespace dr4 {
 	struct cornerdata_t {
 		float field;
 	};
-
-	inline float lerp(float a, float b, float u) {
-		return (1.f - u) * a + u * b;
-	}
 
 	struct FieldQuadtreeNode{
 		cornerdata_t cornerdata[4]; // store adf value here

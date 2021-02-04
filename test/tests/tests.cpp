@@ -198,7 +198,8 @@ void test2DSDF1() {
         Razz::DrawLine(ptr, red, line.fst,line.snd);
     }
     for (auto line : polygon2) {
-        Razz::DrawLine(ptr, blue, line.fst,line.snd);
+        Razz::DrawLine(ptr, blue, line.fst, line.snd);
+    }
 
     writeImageAsPng(image, "test2DSDF1_1.png");
 
@@ -210,9 +211,9 @@ void test2DSDF1() {
     float yin = 0.0f;
     FieldQuadtreeBuilder builder(xin, yin, din);
 
+    // TODO
     // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
     for (auto line : polygon) {
-
     }
 
     image.setAll(background);
