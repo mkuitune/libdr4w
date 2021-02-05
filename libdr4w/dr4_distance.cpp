@@ -9,7 +9,7 @@ float dr4::Distance2DSigned(Pairf pnt, const Line2D& line) {
 	vec2 a(line.fst.x, line.fst.y);
 	vec2 b(line.snd.x, line.snd.y);
 	vec2 pa = p - a, ba = b - a;
-	vec2 normal(ba.y, ba.x);
+	vec2 normal(ba.y, -ba.x);
 	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
 	vec2 dist = pa - ba * h;
 	float sign = dot(normal, dist) > 0.f ? 1.0f : -1.0f;
