@@ -31,7 +31,7 @@ void dr4::FieldQuadtreeBuilder::addExisting(std::function<float(float, float)> f
 			float newFieldValue = field(pnt.x, pnt.y);
 			realValues[i] = std::min(oldFieldValue, newFieldValue);
 		}
-		float diff = samplepoints.sampleDifference(realValues);
+		float diff = samplepoints.maxSampleDifference(realValues);
 
 		if (diff > threshold) {
 			// subdivided
@@ -81,7 +81,8 @@ void dr4::FieldQuadtreeBuilder::addNew(std::function<float(float, float)> field)
 		notProcessed.pop();
 
 		FieldQuadtreeNode& node = tree.nodes[ni];
-		float diff = node.fieldDifferencesAtSamplepoints(field);
+		//float diff = node.fieldDifferencesAtSamplepoints(field);
+		float diff = node.maxFieldDifferenceAtSamplepoints(field);
 
 		if (diff > threshold) {
 			// subdivided

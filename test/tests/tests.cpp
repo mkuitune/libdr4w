@@ -253,8 +253,8 @@ void test2DSDF1() {
     // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
 #if 1
 
-    //for (size_t i = 1; i < 3; i++) 
-    size_t i = 1;
+    for (size_t i = 1; i < 3; i++) 
+    //size_t i = 1;
     {
         auto line = polygon2.lineAt(i);
         LineDistance2D dist(line);

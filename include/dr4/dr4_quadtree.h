@@ -61,14 +61,25 @@ namespace dr4 {
 			}
 			return d;
 		}
+		
+		float maxSampleDifference(float measured[5]) const {
+			int i = 0;
+			float d = fabsf(values[i] - measured[i]);
+			i++;
+			for (; i < 5; i++){
+				d = std::max(d,fabsf(values[i] - measured[i]));
+			}
+			return d;
+		}
 
-		float fieldDifference(std::function<float(float, float)> field) const {
+		float maxFieldDifference(std::function<float(float, float)> field) const {
 			float realValues[5];
 			for (int i = 0; i < 5; i++) {
 				auto pnt = coords[i];
 				realValues[i] = field(pnt.x, pnt.y);
 			}
-			float diff = sampleDifference(realValues);
+			//float diff = sampleDifference(realValues);
+			float diff = maxSampleDifference(realValues);
 			return diff;
 		}
 	};
@@ -93,9 +104,9 @@ namespace dr4 {
 				   (y >= y0 && y <= (y0 + d));
 		}
 
-		float fieldDifferencesAtSamplepoints(std::function<float(float, float)> field) const {
+		float maxFieldDifferenceAtSamplepoints(std::function<float(float, float)> field) const {
 			auto samples = samplepoints();
-			return samples.fieldDifference(field);
+			return samples.maxFieldDifference(field);
 		}
 
 		void applyField(std::function<float(float, float)> field) {
