@@ -6,10 +6,38 @@
 
 #pragma once
 
+#include <math.h>
+
 namespace dr4
 {
 	struct Pairf {
 		float x, y; 
+
+		float norm2() const {
+			return x * x + y * y;
+		}
+		float norm() const {
+			return sqrtf(norm2());
+		}
+		float dot(const Pairf& rhs) const {
+			return x * rhs.x + y * rhs.y;
+		}
+		Pairf normalized() const {
+			float len = norm();
+			return {x / len, y / len};
+		}
+
+		Pairf operator-(const Pairf & p) const{
+			return {x - p.x, y -p.y};
+		}
+
+		Pairf operator*(float p) const {
+			return { x * p, y * p};
+		}
+		
+		void operator*=(float p){
+			x *= p; y *= p;
+		}
 	};
 
 	struct PairIdx { size_t x, y; };

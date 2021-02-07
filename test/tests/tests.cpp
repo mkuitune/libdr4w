@@ -14,6 +14,7 @@ using namespace std;
 #include <dr4/dr4_rasterizer_algorithms.h>
 #include <dr4/dr4_task.h>
 #include <dr4/dr4_quadtree.h>
+#include <dr4/dr4_distance.h>
 
 //------------------------------------------------------
 // Test utilites. Figure out what to do with these
@@ -102,9 +103,9 @@ void testDrawRandLines() {
     using namespace std;
     const int w = 512;
     const int h = 256;
-    ImageRGBA8SRGB image(w, h);
-    SRGBA background = { 255u,255u,255u,255u};
-    SRGBA brush= { 0u, 0u, 0u, 255u };
+    ImageRGBA32Linear image(w, h);
+    RGBAFloat32 background = RGBAFloat32::White();
+    RGBAFloat32 brush = RGBAFloat32::Black();;
     Painter ptr(image);
 
     image.setAll(background);
@@ -123,7 +124,8 @@ void testDrawRandLines() {
         xprev = x;
         yprev = y;
     }
-    writeImageAsPng(image, "testDrawRandLines.png");
+
+    ptr.writeOut("testDrawRandLines.png");
 }
 
 void testDrawRandDots() {
@@ -131,9 +133,9 @@ void testDrawRandDots() {
     using namespace std;
     const int w = 256;
     const int h = 256;
-    ImageRGBA8SRGB image(w, h);
-    SRGBA background = { 255u,255u,255u,255u};
-    SRGBA brush= { 0u, 0u, 0u, 255u };
+    ImageRGBA32Linear image(w, h);
+    RGBAFloat32 background = RGBAFloat32::White();
+    RGBAFloat32 brush= RGBAFloat32::Black();
     image.setAll(background);
     int n = 100;
     RandIntGenerator random;
@@ -146,7 +148,8 @@ void testDrawRandDots() {
         int y = (int)yrange.rand(random);
         image.set(x, y, brush);
     }
-    writeImageAsPng(image, "testDrawRandDots.png");
+    auto imageOut = convertRBGA32LinearToSrgb(image);
+    writeImageAsPng(imageOut, "testDrawRandDots.png");
 }
 
 void testTriangles1() {
@@ -154,27 +157,63 @@ void testTriangles1() {
     using namespace std;
     const int w = 256;
     const int h = 256;
-    ImageRGBA8SRGB image(w, h);
-    SRGBA background = { 255u,255u,255u,255u};
-    SRGBA black= { 0u, 0u, 0u, 255u };
-    SRGBA red = { 255u, 0u, 0u, 255u };
+    ImageRGBA32Linear image(w, h);
+    RGBAFloat32 background = RGBAFloat32::White();
+    RGBAFloat32 black= RGBAFloat32::Black();
+    RGBAFloat32 red = RGBAFloat32::Red();
 
     Painter ptr(image);
 
     image.setAll(background);
     Razz::DrawTriangle(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
-    writeImageAsPng(image, "testTriangles1.png");
+    ptr.writeOut("testTriangles1.png");
 
     image.setAll(background);
     Razz::DrawTriangle2(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
-    writeImageAsPng(image, "testTriangles2.png");
+    ptr.writeOut("testTriangles2.png");
 
     image.setAll(background);
     Razz::DrawTriangle3(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
-    writeImageAsPng(image, "testTriangles3.png");
+    ptr.writeOut("testTriangles3.png");
+}
+
+namespace dr4 {
+    void outputTreeDbg(const std::string& name, const FieldQuadtree& tree) {
+        size_t depth = tree.maxDepth();
+        size_t w = depth;
+        size_t h = depth;
+        w = std::max((size_t)512,w);
+        h = std::max((size_t)512,h);
+        ImageRGBA32Linear image(w, h);
+        RGBAFloat32 navy = {0.f, 0.f, 0.52f, 1.f};
+        RGBAFloat32 white = RGBAFloat32::White();
+        image.setAll(navy);
+        float scale = w / tree.nodes[0].d;
+        Pairf origin = {tree.nodes[0].x0, tree.nodes[0].y0};
+        Painter painter(image);
+        for (const auto& n : tree.nodes) {
+            float ox = n.x0 - origin.x;
+            float oy = n.y0 - origin.y;
+            float cx = ox + n.d;
+            float cy = oy + n.d;
+            ox *= scale;
+            oy *= scale;
+            cx *= scale;
+            cy *= scale;
+            Razz::DrawLine(painter, white, ox, oy, cx, oy);
+            Razz::DrawLine(painter, white, ox, cy, cx, cy);
+            Razz::DrawLine(painter, white, ox, oy, ox, cy);
+            Razz::DrawLine(painter, white, cx, oy, cx, cy);
+        }
+        painter.writeOut(name);
+    }
+
+    void verifyTreeIsCoherent() 
+    {
+    }
 }
 
 void test2DSDF1() {
@@ -182,11 +221,106 @@ void test2DSDF1() {
     using namespace std;
     const int w = 256;
     const int h = 256;
-    ImageRGBA8SRGB image(w, h);
-    SRGBA background = { 255u,255u,255u,255u};
-    SRGBA black= { 0u, 0u, 0u, 255u };
-    SRGBA red = { 255u, 0u, 0u, 255u };
-    SRGBA blue = { 0u, 0u, 255u, 255u };
+    ImageRGBA32Linear image(w, h);
+    RGBAFloat32 white = RGBAFloat32::White();
+    RGBAFloat32 black = RGBAFloat32::Black();
+    RGBAFloat32 red = RGBAFloat32::Red();
+    RGBAFloat32 blue = RGBAFloat32::Blue();
+
+    Painter ptr(image);
+    image.setAll(white);
+
+    Polygon2D polygon = { {{{10.f, 10.f}, {50.f, 10.f}, {30.f, 30.f}}} };
+    Polygon2D polygon2 = { {{{200.f, 200.f}, {50.f, 200.f}, {125.f, 50.f}}} };
+
+    for (auto line : polygon) {
+        Razz::DrawLine(ptr, red, line.fst,line.snd);
+    }
+    for (auto line : polygon2) {
+        Razz::DrawLine(ptr, blue, line.fst, line.snd);
+    }
+    ptr.writeOut("test2DSDF1_1.png");
+
+    //
+    // ASDF test - use pixel coordinates for tree to simplify initial testing
+    //
+    float din = (float) max(w, h);
+    float xin = 0.0f;
+    float yin = 0.0f;
+    FieldQuadtreeBuilder builder(xin, yin, din);
+
+    // TODO
+    // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
+#if 1
+
+    //for (size_t i = 1; i < 3; i++) 
+    size_t i = 1;
+    {
+        auto line = polygon2.lineAt(i);
+        LineDistance2D dist(line);
+        auto fun = dist.bindUnsigned();
+        builder.add(fun);
+    }
+#endif
+#if 0
+    {
+        auto line = polygon2.lineAt(0);
+        LineDistance2D dist(line);
+        auto fun = dist.bindUnsigned();
+        builder.add(fun);
+    }
+#endif
+    auto quadtree = builder.build();
+
+    outputTreeDbg("treedbg1.png", quadtree);
+
+    image.setAll(white);
+    float thickness = 5.f / 2;
+#if 1 // colorize as line
+    // Map quadtree to output texture
+    float k = 4.f;
+    for (unsigned y = 0; y < image.dim2(); y++){
+        for (unsigned x = 0; x < image.dim1(); x++){
+            float dist = quadtree.getDeepSample((float)x, (float)y);
+            float fd = fabsf(dist);
+            if (fabsf(dist) <= thickness) {
+                red.a = clampf(k * (1.0f - fd / thickness) , 0.f, 1.f);
+                ptr.BlendPixeli(x, y, red);
+            }
+        }
+    }
+#endif
+
+    ptr.writeOut("test2DSDF1_2_sdf.png");
+#if 1 // colorize as striped gradient
+    // Map quadtree to output texture
+
+    image.setAll(white);
+    RGBAFloat32 col1 = RGBAFloat32::Orange();
+    RGBAFloat32 col2 = RGBAFloat32::Navy();
+
+    for (unsigned y = 0; y < image.dim2(); y++){
+        for (unsigned x = 0; x < image.dim1(); x++){
+            float dist = quadtree.getDeepSample((float)x, (float)y);
+            RGBAFloat32 col = Lerp(col1, col2, fabsf(sin(dist/2)));
+            ptr.SetPixeli(x, y,  col);
+        }
+    }
+#endif
+    ptr.writeOut("test2DSDF1_2_sdf_field.png");
+
+}
+
+void test2DSDF2() {
+    using namespace dr4;
+    using namespace std;
+    const int w = 256;
+    const int h = 256;
+    ImageRGBA32Linear image(w, h);
+    RGBAFloat32 background = RGBAFloat32::White();
+    RGBAFloat32 black = RGBAFloat32::Black();
+    RGBAFloat32 red = RGBAFloat32::Red();
+    RGBAFloat32 blue = RGBAFloat32::Blue();
 
     Painter ptr(image);
     image.setAll(background);
@@ -201,7 +335,7 @@ void test2DSDF1() {
         Razz::DrawLine(ptr, blue, line.fst, line.snd);
     }
 
-    writeImageAsPng(image, "test2DSDF1_1.png");
+    ptr.writeOut("test2DSDF1_1.png");
 
     //
     // ASDF test - use pixel coordinates for tree to simplify initial testing
@@ -213,10 +347,40 @@ void test2DSDF1() {
 
     // TODO
     // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
-    for (auto line : polygon) {
+    auto poly2linecount = polygon2.size();
+#if 1
+    //for (size_t i = 0; i < poly2linecount; i++) {
+    for (size_t i = 0; i < 3; i++) {
+        auto line = polygon2.lineAt(i);
+        LineDistance2D dist(line);
+        auto fun = dist.bindUnsigned();
+        builder.add(fun);
     }
+#endif
+    auto quadtree = builder.build();
+
+    outputTreeDbg("treedbg2.png", quadtree);
+
+    // TODO: Visualize quadtree!
 
     image.setAll(background);
+
+#if 1 // colorize as gradient
+    // Map quadtree to output texture
+
+    RGBAFloat32 col1 = RGBAFloat32::White();
+    RGBAFloat32 col2 = RGBAFloat32::Red();
+    for (unsigned y = 0; y < image.dim2(); y++){
+        for (unsigned x = 0; x < image.dim1(); x++){
+            float dist = quadtree.getDeepSample((float)x, (float)y);
+            float u = clampf(dist / 100.f, 0.f, 1.f);
+            RGBAFloat32 col = Lerp(col1, col2, u);
+            ptr.SetPixeli(x, y,  col);
+        }
+    }
+#endif
+
+    ptr.writeOut("test2DSDF2_2_sdf.png");
 }
 
 int main()
@@ -227,6 +391,7 @@ int main()
     testDrawRandLines();
     testTriangles1();
     test2DSDF1();
+    test2DSDF2();
     return 0;
 }
 

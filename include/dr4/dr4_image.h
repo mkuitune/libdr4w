@@ -23,6 +23,9 @@ namespace dr4 {
 	ImageRGBA32Linear convertToLinear(const ImageRGBA8SRGB& srgb);
 
 	std::string writeImageAsPng(const ImageRGBA8SRGB& image, const char* pathStr);
+	inline std::string writeImageAsPng(const ImageRGBA8SRGB& image, const std::string& str) {
+		return writeImageAsPng(image, str.c_str());
+	}
 
 	// TODO use std::path instead
 	std::pair<std::unique_ptr<ImageRGBA8SRGB>, std::string> readImage(const std::string& str);

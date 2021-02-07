@@ -71,9 +71,14 @@ namespace dr4 {
 		return (1.0f - u) * src + u * dst;
 	}
 
-	inline float clamp(float minval, float maxval, float val){
+	inline float clampf(float val, float minval, float maxval){
 		return val < minval ? minval : (val > maxval ? maxval : val); 
 	}
+
+	//inline float CLAMP(float x, float minVal, float maxVal)
+	//{
+	//		return std::min(std::max(x, minVal), maxVal);
+	//	}
 
 	inline float KahanSumf(float* inputStart, float* inputEnd) {
 

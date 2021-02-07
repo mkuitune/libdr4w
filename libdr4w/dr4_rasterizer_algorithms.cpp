@@ -26,23 +26,23 @@ namespace dr4 {
 	class Edge
 	{
 	public:
-		SRGBA Color;
+		RGBAFloat32 Color;
 		int X1, Y1, X2, Y2;
 
-		Edge(const SRGBA& color, int x1, int y1, int x2, int y2);
+		Edge(const RGBAFloat32& color, int x1, int y1, int x2, int y2);
 	};
 
 	class Span
 	{
 	public:
-		SRGBA Color;
+		RGBAFloat32 Color;
 		int X1, X2;
 
-		Span(const SRGBA& color1, int x1, int x2);
+		Span(const RGBAFloat32& color1, int x1, int x2);
 	};
 }
 
-dr4::Edge::Edge(const SRGBA& color1, int x1, int y1, int x2, int y2)
+dr4::Edge::Edge(const RGBAFloat32& color1, int x1, int y1, int x2, int y2)
 {
 	Color = color1;
 	if (y1 < y2) {
@@ -59,7 +59,7 @@ dr4::Edge::Edge(const SRGBA& color1, int x1, int y1, int x2, int y2)
 	}
 }
 
-dr4::Span::Span(const SRGBA& color1, int x1, int x2)
+dr4::Span::Span(const RGBAFloat32& color1, int x1, int x2)
 {
 	Color = color1;
 	if (x1 < x2) {
@@ -137,7 +137,7 @@ namespace {
 }
 
 void
-dr4::Razz::DrawTriangle(dr4::Painter& p, const SRGBA& color1, float x1, float y1,
+dr4::Razz::DrawTriangle(dr4::Painter& p, const RGBAFloat32& color1, float x1, float y1,
 	float x2, float y2,
 	float x3, float y3)
 {
@@ -170,7 +170,7 @@ dr4::Razz::DrawTriangle(dr4::Painter& p, const SRGBA& color1, float x1, float y1
 }
 
 void
-dr4::Razz::DrawTriangle2(dr4::Painter& ptr, const SRGBA& color1, float x1, float y1,
+dr4::Razz::DrawTriangle2(dr4::Painter& ptr, const RGBAFloat32& color1, float x1, float y1,
 	float x2, float y2,
 	float x3, float y3)
 {
@@ -210,7 +210,7 @@ dr4::Razz::DrawTriangle2(dr4::Painter& ptr, const SRGBA& color1, float x1, float
 (kx_ -ix_) * py_ + (iy_ - ky_) * px_ + (ix_ * ky_ - iy_ * kx_)
 
 void
-dr4::Razz::DrawTriangle3(dr4::Painter& ptr, const SRGBA& color1, float x1, float y1,
+dr4::Razz::DrawTriangle3(dr4::Painter& ptr, const RGBAFloat32& color1, float x1, float y1,
 	float x2, float y2,
 	float x3, float y3)
 {
@@ -256,7 +256,7 @@ dr4::Razz::DrawTriangle3(dr4::Painter& ptr, const SRGBA& color1, float x1, float
 	}
 }
 
-void dr4::Razz::DrawLine(Painter& ptr, SRGBA color, float x1, float y1, float x2, float y2) {
+void dr4::Razz::DrawLine(Painter& ptr, RGBAFloat32 color, float x1, float y1, float x2, float y2) {
 	float xdiff = (x2 - x1);
 	float ydiff = (y2 - y1);
 

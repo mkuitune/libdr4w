@@ -6,7 +6,7 @@ void dr4::FieldQuadtreeBuilder::addExisting(std::function<float(float, float)> f
 	for (size_t n = 0; n < tree.nodes.size(); n++)
 		notProcessed.push(n);
 
-	while (notProcessed.empty()) {
+	while (!notProcessed.empty()) {
 		size_t ni = notProcessed.top();
 		notProcessed.pop();
 
@@ -45,11 +45,11 @@ void dr4::FieldQuadtreeBuilder::addExisting(std::function<float(float, float)> f
 			n0.applyField(field);
 			n0.applyPrevious(oldNode);
 			n1.applyField(field);
-			n0.applyPrevious(oldNode);
+			n1.applyPrevious(oldNode);
 			n2.applyField(field);
-			n0.applyPrevious(oldNode);
+			n2.applyPrevious(oldNode);
 			n3.applyField(field);
-			n0.applyPrevious(oldNode);
+			n3.applyPrevious(oldNode);
 
 			size_t newIdx = tree.nodes.size();
 			node.childs = newIdx;
@@ -76,7 +76,7 @@ void dr4::FieldQuadtreeBuilder::addNew(std::function<float(float, float)> field)
 	std::stack<size_t> notProcessed;
 	notProcessed.push(0);
 
-	while (notProcessed.empty()) {
+	while (!notProcessed.empty()) {
 		size_t ni = notProcessed.top();
 		notProcessed.pop();
 

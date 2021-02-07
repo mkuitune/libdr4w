@@ -27,6 +27,15 @@ namespace dr4 {
 		RGBAFloat32 BlendPreMultipliedAlpha(const RGBAFloat32 source, const RGBAFloat32 target)
 		{
 			const float fb = 1.f - source.a;
+			return{ source.r + target.r * fb,
+					source.g + target.g * fb,
+					source.b + target.b * fb,
+					source.a + target.a * fb };
+		}
+		
+		RGBAFloat32 BlendAlpha(const RGBAFloat32 source, const RGBAFloat32 target)
+		{
+			const float fb = 1.f - source.a;
 			return{ source.a * source.r + target.a * target.r * fb,
 					source.a * source.g + target.a * target.g * fb,
 					source.a * source.b + target.a * target.b * fb,
@@ -34,7 +43,7 @@ namespace dr4 {
 		}
 
 		SRGBA ToSRGBA(const RGBAFloat32& fcolor) {
-			uint8_t a = (uint8_t)(255.f * clamp(0.f, 1.f, fcolor.a));// TODO FIXME
+			uint8_t a = (uint8_t)(255.f * clampf(fcolor.a, 0.f, 1.f));// TODO FIXME
 			return{ LinearFloatToSRGBUint8(fcolor.r), LinearFloatToSRGBUint8(fcolor.g),
 				LinearFloatToSRGBUint8(fcolor.b), a };
 		}
@@ -52,6 +61,16 @@ namespace dr4 {
 			SRGBA out = ToSRGBA(RGB{ color.r, color.g, color.b });
 			out.a = color.a;
 			return out;
+		}
+
+		RGBA BlendPreMultiplied(RGBA src, RGBA trgt) {
+
+			const float fb = ((float)(255 - src.a))/255.f;
+			uint8_t rout = (uint8_t)(src.r + trgt.r * fb);
+			uint8_t gout = (uint8_t)(src.g + trgt.g * fb);
+			uint8_t bout = (uint8_t)(src.b + trgt.b * fb);
+			uint8_t aout = (uint8_t)(src.a + trgt.a * fb);
+			return{rout, gout,bout,aout };
 		}
 
 		RGBAFloat32 Lerp(const RGBAFloat32& src, const RGBAFloat32& dst, float u) {
