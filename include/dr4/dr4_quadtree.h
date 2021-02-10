@@ -53,7 +53,6 @@ namespace dr4 {
 
 	struct FieldQuadtreeNode;
 
-#if 1
 	struct fq_interpoloation_samples_t {
 		fq_coordinate_t coords[5];
 		float values[5];
@@ -76,12 +75,11 @@ namespace dr4 {
 			}
 #endif
 
-#if 1
 			float d = 0.f;
 			for (int i = 0; i < 5; i++){
 				d += fabsf(values[i] - measured[i]);
 			}
-#endif
+
 			return d;
 		}
 		
@@ -116,19 +114,7 @@ namespace dr4 {
 		}
 #endif
 	};
-#endif
-#if 0
-	inline float gradientDifference(const Pairf normals[5]) {
 
-		Pairf ref = normals[1];
-		for (int i = 2; i < 4; i++)
-		{
-			ref.x += normals[i].x;
-			ref.y += normals[i].y;
-		}
-		return (normals[1].x - 0.25 * ref.x) + (normals[1].y - 0.25f * ref.y);
-	}
-#endif
 #if 0
 	struct fq_interpoloation_samples_t {
 		fq_coordinate_t coords[9];
@@ -194,11 +180,6 @@ namespace dr4 {
 			return (x >= x0 && x <= (x0 + d)) &&
 				   (y >= y0 && y <= (y0 + d));
 		}
-
-		//float maxFieldDifferenceAtSamplepoints(std::function<float(float, float)> field) const {
-		//	auto samples = samplepoints();
-		//	return samples.maxFieldDifference(field);
-		//}
 
 		void applyField(std::function<float(float, float)> field) {
 			auto corpos = corners();
@@ -359,19 +340,13 @@ namespace dr4 {
 
 		FieldQuadtree  tree;
 		float x; float y; float d;
-		//float threshold = 0.1f;
-		//float threshold = 10.0f;
 		float threshold = 1.f;
 		float thresholdrelative = 0.01f;
-		//float divergenceLimit = 0.5f;
-		// Lower left corner of tree plus initial size
-		//FieldQuadtreeBuilder(float x, float y, float d) {}
 
 		uint8_t maxnodedepth = 8;
 
 		FieldQuadtreeBuilder(float xin, float yin, float din) :x(xin), y(yin), d(din) {
 		}
-
 
 		FieldQuadtree  build() {
 			return tree;
