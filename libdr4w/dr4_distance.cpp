@@ -28,7 +28,7 @@ float dr4:: Distance2DUnsigned(Pairf pnt, const Line2D& line) {
 	return length(dist);
 }
 
-
+#if 1
 float dr4::LineDistance2D::signedDistance(Pairf p) const {
 	auto pa = p - a;
 	float h = clampf(pa.dot(m_vec) / m_vecdot, 0.0f, 1.0f);
@@ -43,3 +43,27 @@ float dr4::LineDistance2D::unsignedDistance(Pairf p) const {
 	auto dist = pa - (m_vec * h);
 	return dist.norm();
 }
+#endif
+
+#if 0
+float dr4::LineDistance2D::signedDistance(Pairf p) const {
+	//auto pa = p - a;
+	Paird da = {a.x, a.y};
+	Paird dp = { p.x, p.y };
+	Paird pa = dp - da;
+	double h = clampd(pa.dot(m_vecd) / m_vecdot, 0.0, 1.0);
+	auto dist = pa - (m_vecd * h);
+	double sign = m_normald.dot(dist) > 0.0 ? 1.0 : -1.0;
+	return sign * dist.norm();
+}
+
+float dr4::LineDistance2D::unsignedDistance(Pairf p) const {
+	//auto pa = p - a;
+	Paird da = {a.x, a.y};
+	Paird dp = { p.x, p.y };
+	Paird pa = dp - da;
+	double h = clampd(pa.dot(m_vecd) / m_vecdot, 0.0, 1.0);
+	auto dist = pa - (m_vecd * h);
+	return dist.norm();
+}
+#endif

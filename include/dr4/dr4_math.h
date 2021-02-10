@@ -74,6 +74,9 @@ namespace dr4 {
 	inline float clampf(float val, float minval, float maxval){
 		return val < minval ? minval : (val > maxval ? maxval : val); 
 	}
+	inline float clampd(double val, double minval, double maxval){
+		return val < minval ? minval : (val > maxval ? maxval : val); 
+	}
 
 	//inline float CLAMP(float x, float minVal, float maxVal)
 	//{

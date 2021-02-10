@@ -82,8 +82,11 @@ namespace dr4 {
 		Pairf a;
 		Pairf b;
 		Pairf m_vec;
+		Paird m_vecd;
 		Pairf m_normal;
-		float m_vecdot;
+		Paird m_normald;
+		//float m_vecdot;
+		double m_vecdot;
 
 	public:
 
@@ -93,11 +96,15 @@ namespace dr4 {
 
 			m_line = line;
 			m_vec = b - a;
+			m_vecd = { m_vec.x, m_vec.y };
 			m_vecdot = m_vec.norm2();
 
 			m_normal.x = m_vec.y;
 			m_normal.y = -m_vec.x;
+			m_normald.x = m_normal.x;
+			m_normald.y = m_normal.y;
 			m_normal = m_normal.normalized();
+			m_normald = m_normald.normalized();
 		}
 
 		float signedDistance(Pairf pnt) const;

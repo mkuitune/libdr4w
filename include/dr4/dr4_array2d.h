@@ -86,6 +86,8 @@ namespace dr4 {
 		const T& at(const PairIdx& idx) const noexcept { return at(idx.x, idx.y); }
 
 		void set(size_t x, size_t y, const T& value) noexcept { m_data[index2d(x, y)] = value; }
+		void setIfLarger(size_t x, size_t y, const T& value) noexcept { if(m_data[index2d(x, y)] < value) m_data[index2d(x, y)] = value; }
+		void setIfSmaller(size_t x, size_t y, const T& value) noexcept { if(m_data[index2d(x, y)] > value) m_data[index2d(x, y)] = value; }
 		void set(const PairIdx& idx, const T& value) { set(idx.x, idx.y, value); }
 
 		void setAll(const T& value) {

@@ -253,7 +253,10 @@ void test2DSDF1() {
     // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
 #if 1
 
-    for (size_t i = 1; i < 3; i++) 
+    const size_t startEdge = 0;
+    const size_t endEdge = 2;
+
+    for (size_t i = startEdge; i < endEdge; i++) 
     //size_t i = 1;
     {
         auto line = polygon2.lineAt(i);
@@ -292,6 +295,7 @@ void test2DSDF1() {
 #endif
 
     ptr.writeOut("test2DSDF1_2_sdf.png");
+
 #if 1 // colorize as striped gradient
     // Map quadtree to output texture
 
@@ -306,9 +310,111 @@ void test2DSDF1() {
             ptr.SetPixeli(x, y,  col);
         }
     }
-#endif
     ptr.writeOut("test2DSDF1_2_sdf_field.png");
+#endif
 
+#if 1
+// colorize per real distance
+    Array2D<float> realDists(image.dim1(), image.dim2(), 1.0e9f);
+    for (size_t i = startEdge; i < endEdge; i++) 
+    //size_t i = 1;
+    {
+        auto line = polygon2.lineAt(i);
+        LineDistance2D dist(line);
+        auto fun = dist.bindUnsigned();
+        for (int i = 0; i < realDists.dim2(); i++) {
+            for (int j = 0; j < realDists.dim1(); j++)
+            {
+                float x = (float)j, y = (float)i;
+                float d = dist.unsignedDistance({ x, y });
+                realDists.setIfSmaller(j, i, d);
+                float samp = quadtree.getDeepSample(x, y);
+            }
+        }
+    }
+    
+    Array2D<float> distDiff(image.dim1(), image.dim2(), 1.0e9f);
+    {
+        for (int i = 0; i < realDists.dim2(); i++) {
+            for (int j = 0; j < realDists.dim1(); j++)
+            {
+                float x = (float)j, y = (float)i;
+                float d = realDists.at(j, i);
+                float samp = quadtree.getDeepSample(x, y);
+                float diff = fabsf(samp - d);
+                distDiff.set(j, i, diff);
+            }
+        }
+    }
+
+    // print out real values
+    image.setAll(white);
+    //RGBAFloat32 col1 = RGBAFloat32::Orange();
+    //RGBAFloat32 col2 = RGBAFloat32::Navy();
+
+    for (unsigned y = 0; y < image.dim2(); y++){
+        for (unsigned x = 0; x < image.dim1(); x++){
+            float dist = realDists.at(x, y);
+            RGBAFloat32 col = Lerp(col1, col2, fabsf(sin(dist/2)));
+            ptr.SetPixeli(x, y,  col);
+        }
+    }
+    ptr.writeOut("test2DSDF1_2_sdf_field_real.png");
+    
+    // print out value difference
+    float mx = -1e9;
+    PairIdx maxIdx;
+    float mn = 1e9;
+    PairIdx minIdx;
+    for (unsigned x = 0; x < image.dim1(); x++){
+        for (unsigned y = 0; y < image.dim2(); y++){
+            float df = distDiff.at(x, y);
+            if (df > mx) {
+                mx = df;
+                maxIdx = { x,y };
+            }
+            if (df < mn) {
+                mn = df;
+                minIdx = { x,y };
+            }
+        }
+    }
+    float dm = mx - mn;
+    size_t maxCell = quadtree.getIdxAt(maxIdx.x, maxIdx.y);
+    auto node = quadtree.nodes[maxCell];
+    float realCorners[] = {
+        realDists.at(node.x0, node.y0),
+        realDists.at(node.x0 + node.d, node.y0),
+        realDists.at(node.x0 + node.d, node.y0 + node.d),
+        realDists.at(node.x0, node.y0 + node.d),
+    };
+    float maxTreeVal = quadtree.getDeepSample(maxIdx.x, maxIdx.y);
+    float maxRealVal = realDists.at(maxIdx);
+
+    fq_interpoloation_samples_t mxSamples = node.samplepoints();
+    float realValsAtSamples[5];
+    for (int i = 0; i < 5; i++)
+    {
+        PairIdx p = { mxSamples.coords[i].x, mxSamples.coords[i].y };
+        realValsAtSamples[i] = realDists.at(p);
+    }
+
+    std::cout << "max diff:" << mx << " min diff:" << mn << std::endl;
+    // output dif values
+    image.setAll(white);
+    for (unsigned y = 0; y < image.dim2(); y++){
+        for (unsigned x = 0; x < image.dim1(); x++){
+            float dist = distDiff.at(x, y);
+            float val = clampf((dist - mn) / dm, 0.f, 1.f);
+            RGBAFloat32 col = Lerp(col1, col2, val);
+            ptr.SetPixeli(x, y,  col);
+        }
+    }
+    ptr.writeOut("test2DSDF1_2_sdf_field_diff.png");
+
+
+
+#endif
 }
 
 void test2DSDF2() {
@@ -385,13 +491,13 @@ void test2DSDF2() {
 
 int main()
 {
-    testImageIO();
-    testrand();
-    testDrawRandDots();
-    testDrawRandLines();
-    testTriangles1();
+    //testImageIO();
+    //testrand();
+    //testDrawRandDots();
+    //testDrawRandLines();
+    //testTriangles1();
     test2DSDF1();
-    test2DSDF2();
+    //test2DSDF2();
     return 0;
 }
 

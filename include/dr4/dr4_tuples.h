@@ -39,6 +39,36 @@ namespace dr4
 			x *= p; y *= p;
 		}
 	};
+	
+	struct Paird {
+		double x, y; 
+
+		double norm2() const {
+			return x * x + y * y;
+		}
+		double norm() const {
+			return sqrtf(norm2());
+		}
+		double dot(const Paird& rhs) const {
+			return x * rhs.x + y * rhs.y;
+		}
+		Paird normalized() const {
+			double len = norm();
+			return {x / len, y / len};
+		}
+
+		Paird operator-(const Paird & p) const{
+			return {x - p.x, y -p.y};
+		}
+
+		Paird operator*(double p) const {
+			return { x * p, y * p};
+		}
+		
+		void operator*=(double p){
+			x *= p; y *= p;
+		}
+	};
 
 	struct PairIdx { size_t x, y; };
 
