@@ -6,6 +6,85 @@ void dr4::FieldQuadtreeBuilder::addExisting(std::function<float(float, float)> f
 	for (size_t n = 0; n < tree.nodes.size(); n++)
 		notProcessed.push(n);
 
+	// Need to refer to the old node
+	FieldQuadtreeNode oldNode;
+	size_t parentCount = tree.nodes.size();
+
+	while (!notProcessed.empty()) {
+		size_t ni = notProcessed.top();
+		notProcessed.pop();
+		FieldQuadtreeNode& node = tree.nodes[ni];
+
+		if (ni < parentCount) {
+			// This is parent node, override the current parent - DON'T USE NEW NODES AS REFERENCE FIELD as that
+			// loses information
+			oldNode = node;
+			node.applyFieldToExisting(field);
+		}
+
+		// Store old node so we can sample the field
+		// subdivide only current leafs. Othewise just apply field 
+		if (node.childs != 0){
+			continue;
+		}
+
+		// Find of precision suffices or do we need to subdivide
+		fq_interpoloation_samples_t samplepoints = node.samplepoints();
+		float realValues[5]; // Real values at sample points
+		for (int i = 0; i < 5; i++) {
+			auto pnt = samplepoints.coords[i];
+			float interpolatedFieldValue = oldNode.sampleCorners(pnt.x, pnt.y);
+			float newFieldValue = field(pnt.x, pnt.y);
+			realValues[i] = std::min(interpolatedFieldValue, newFieldValue);
+		}
+		
+		float diff = samplepoints.maxSampleDifference(realValues);
+		bool subdivide = (diff > threshold) && node.depth < maxnodedepth;
+
+		if (subdivide) {
+			// subdivided
+			float d2 = node.d / 2;
+			size_t newIdx = tree.nodes.size();
+
+			FieldQuadtreeNode n0 = FieldQuadtreeNode::Init(node.x0, node.y0, d2);
+			FieldQuadtreeNode n1 = FieldQuadtreeNode::Init(node.x0 + d2, node.y0, d2);
+			FieldQuadtreeNode n2 = FieldQuadtreeNode::Init(node.x0 + d2, node.y0 + d2, d2);
+			FieldQuadtreeNode n3 = FieldQuadtreeNode::Init(node.x0, node.y0 + d2, d2);
+
+			// Apply sampling of current field and old field. 
+			n0.initFromPrevious(oldNode);
+			n0.applyFieldToExisting(field);
+			n1.initFromPrevious(oldNode);
+			n1.applyFieldToExisting(field);
+			n2.initFromPrevious(oldNode);
+			n2.applyFieldToExisting(field);
+			n3.initFromPrevious(oldNode);
+			n3.applyFieldToExisting(field);
+			n0.depth = node.depth + 1;
+			n1.depth = node.depth + 1;
+			n2.depth = node.depth + 1;
+			n3.depth = node.depth + 1;
+
+			node.childs = newIdx;
+			tree.nodes.push_back(n0);
+			tree.nodes.push_back(n1);
+			tree.nodes.push_back(n2);
+			tree.nodes.push_back(n3);
+			notProcessed.push(newIdx);
+			notProcessed.push(newIdx + 1);
+			notProcessed.push(newIdx + 2);
+			notProcessed.push(newIdx + 3);
+		}
+	}
+
+}
+#if 0
+void dr4::FieldQuadtreeBuilder::addExisting(std::function<float(float, float)> field) {
+
+	std::stack<size_t> notProcessed;
+	for (size_t n = 0; n < tree.nodes.size(); n++)
+		notProcessed.push(n);
+
 	while (!notProcessed.empty()) {
 		size_t ni = notProcessed.top();
 		notProcessed.pop();
@@ -96,6 +175,7 @@ void dr4::FieldQuadtreeBuilder::addExisting(std::function<float(float, float)> f
 	}
 
 }
+#endif
 
 void dr4::FieldQuadtreeBuilder::addNew(std::function<float(float, float)> field) {
 	{
