@@ -254,7 +254,7 @@ void test2DSDF1() {
 #if 1
 
     const size_t startEdge = 0;
-    const size_t endEdge = 2;
+    const size_t endEdge = 3;
 
     for (size_t i = startEdge; i < endEdge; i++) 
     //size_t i = 1;

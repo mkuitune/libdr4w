@@ -217,18 +217,7 @@ namespace dr4 {
 					cornerdata[i].field = smp;
 			}
 		}
-#if 0
-		// NOTE: Fieldvalues must have some preset before applying this
-		void applyPrevious(const FieldQuadtreeNode& prev) {
-			auto corpos = corners();
-			for (int i = 0; i < 4; i++) {
-				auto pos = corpos.corners[i];
-				float smp = prev.sampleCorners(pos.x, pos.y);
-				if (fabsf(cornerdata[i].field) > fabsf(smp))
-					cornerdata[i].field = smp;
-			}
-		}
-#endif	
+
 		void initFromPrevious(const FieldQuadtreeNode& prev) {
 			auto corpos = corners();
 			for (int i = 0; i < 4; i++) {
