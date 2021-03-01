@@ -162,6 +162,7 @@
     <ClInclude Include="..\include\dr4\dr4_array2d.h" />
     <ClInclude Include="..\include\dr4\dr4_camera.h" />
     <ClInclude Include="..\include\dr4\dr4_color.h" />
+    <ClInclude Include="..\include\dr4\dr4_dimension.h" />
     <ClInclude Include="..\include\dr4\dr4_distance.h" />
     <ClInclude Include="..\include\dr4\dr4_floatingpoint.h" />
     <ClInclude Include="..\include\dr4\dr4_geometryresult.h" />
@@ -172,9 +173,13 @@
     <ClInclude Include="..\include\dr4\dr4_rand.h" />
     <ClInclude Include="..\include\dr4\dr4_rasterizer.h" />
     <ClInclude Include="..\include\dr4\dr4_rasterizer_algorithms.h" />
+    <ClInclude Include="..\include\dr4\dr4_rasterizer_area.h" />
     <ClInclude Include="..\include\dr4\dr4_scene2d.h" />
     <ClInclude Include="..\include\dr4\dr4_scene3d.h" />
     <ClInclude Include="..\include\dr4\dr4_shapes.h" />
+    <ClInclude Include="..\include\dr4\dr4_span2f.h" />
+    <ClInclude Include="..\include\dr4\dr4_span3f.h" />
+    <ClInclude Include="..\include\dr4\dr4_spanf.h" />
     <ClInclude Include="..\include\dr4\dr4_task.h" />
     <ClInclude Include="..\include\dr4\dr4_tuples.h" />
     <ClInclude Include="..\include\dr4\dr4_unitvector2f.h" />

@@ -30,6 +30,10 @@ namespace dr4
 		Pairf operator-(const Pairf & p) const{
 			return {x - p.x, y -p.y};
 		}
+		
+		Pairf operator+(const Pairf & p) const{
+			return {x + p.x, y + p.y};
+		}
 
 		Pairf operator*(float p) const {
 			return { x * p, y * p};
@@ -37,6 +41,10 @@ namespace dr4
 		
 		void operator*=(float p){
 			x *= p; y *= p;
+		}
+
+		float operator[](size_t idx) const {
+			return idx == 0 ? x : y;
 		}
 	};
 	
@@ -47,7 +55,7 @@ namespace dr4
 			return x * x + y * y;
 		}
 		double norm() const {
-			return sqrtf(norm2());
+			return sqrt(norm2());
 		}
 		double dot(const Paird& rhs) const {
 			return x * rhs.x + y * rhs.y;
@@ -70,7 +78,34 @@ namespace dr4
 		}
 	};
 
-	struct PairIdx { size_t x, y; };
+	struct TripletBool {
+		bool fst, snd, thrd;
+
+		TripletBool invert() const {
+			return { !fst, !snd, !thrd};
+		}
+
+		bool all() const {
+			return fst && snd && thrd;
+		}
+
+		bool allNot() const {
+			return (!fst) && (!snd) && (!thrd);
+		}
+	};
+
+	struct PairIdx {
+		size_t x, y; 
+#if 0
+		bool operator>=(const PairIdx& rhs) const {
+			return x >= rhs.x && y >= rhs.y;
+		}
+
+		bool operator <(const PairIdx& rhs) const {
+			return x < rhs.x&& y < rhs.y;
+		}
+#endif
+	};
 
 	struct Tripletf {
 		float x, y, z;

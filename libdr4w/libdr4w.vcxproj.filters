@@ -78,6 +78,21 @@
     <ClInclude Include="..\include\dr4\dr4_distance.h">
       <Filter>include/dr4w</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_span3f.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_spanf.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_dimension.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_span2f.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_rasterizer_area.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dr4_image.cpp">

@@ -3,6 +3,7 @@ using namespace std;
 
 #include <filesystem>
 #include <algorithm>
+#include <optional>
 
 #include <dr4/dr4_rand.h>
 #include <dr4/dr4_camera.h>
@@ -15,6 +16,7 @@ using namespace std;
 #include <dr4/dr4_task.h>
 #include <dr4/dr4_quadtree.h>
 #include <dr4/dr4_distance.h>
+#include <dr4/dr4_span2f.h>
 
 //------------------------------------------------------
 // Test utilites. Figure out what to do with these
@@ -380,22 +382,22 @@ void test2DSDF1() {
         }
     }
     float dm = mx - mn;
-    size_t maxCell = quadtree.getIdxAt(maxIdx.x, maxIdx.y);
+    size_t maxCell = quadtree.getIdxAt((float)maxIdx.x, (float)maxIdx.y);
     auto node = quadtree.nodes[maxCell];
     float realCorners[] = {
-        realDists.at(node.x0, node.y0),
-        realDists.at(node.x0 + node.d, node.y0),
-        realDists.at(node.x0 + node.d, node.y0 + node.d),
-        realDists.at(node.x0, node.y0 + node.d),
+        realDists.at((size_t)node.x0, (size_t)node.y0),
+        realDists.at((size_t)(node.x0 + node.d),(size_t) node.y0),
+        realDists.at((size_t)(node.x0 + node.d),(size_t) (node.y0 + node.d)),
+        realDists.at((size_t)node.x0, (size_t)(node.y0 + node.d)),
     };
-    float maxTreeVal = quadtree.getDeepSample(maxIdx.x, maxIdx.y);
+    float maxTreeVal = quadtree.getDeepSample((float)maxIdx.x, (float)maxIdx.y);
     float maxRealVal = realDists.at(maxIdx);
 
     fq_interpoloation_samples_t mxSamples = node.samplepoints();
     float realValsAtSamples[5];
     for (int i = 0; i < 5; i++)
     {
-        PairIdx p = { mxSamples.coords[i].x, mxSamples.coords[i].y };
+        PairIdx p = {(size_t) mxSamples.coords[i].x, (size_t) mxSamples.coords[i].y };
         realValsAtSamples[i] = realDists.at(p);
     }
 
@@ -417,7 +419,7 @@ void test2DSDF1() {
 #endif
 }
 
-void test2DSDF2() {
+void test2DSDFPolygon() {
     using namespace dr4;
     using namespace std;
     const int w = 256;
@@ -441,7 +443,7 @@ void test2DSDF2() {
         Razz::DrawLine(ptr, blue, line.fst, line.snd);
     }
 
-    ptr.writeOut("test2DSDF1_1.png");
+    ptr.writeOut("test2DSDFPolygon_1.png");
 
     //
     // ASDF test - use pixel coordinates for tree to simplify initial testing
@@ -453,6 +455,7 @@ void test2DSDF2() {
 
     // TODO
     // The polygon can be tessellated EITHER as a set of lines, or as a single polygon
+#if 0
     auto poly2linecount = polygon2.size();
 #if 1
     //for (size_t i = 0; i < poly2linecount; i++) {
@@ -463,6 +466,10 @@ void test2DSDF2() {
         builder.add(fun);
     }
 #endif
+#endif
+    PolygonDistance2D distp2(polygon2);
+    auto fun2 = distp2.bindSigned();
+    builder.add(fun2);
     auto quadtree = builder.build();
 
     outputTreeDbg("treedbg2.png", quadtree);
@@ -486,7 +493,49 @@ void test2DSDF2() {
     }
 #endif
 
-    ptr.writeOut("test2DSDF2_2_sdf.png");
+    ptr.writeOut("test2DSDFPolygon_2_sdf.png");
+}
+
+
+
+void proto2DRendering() {
+    // p : pixel buffer
+    // for each 2d shape
+    // 
+    using namespace dr4;
+    int pixW = 364;
+    int pixH = 512;
+    ImageRGBA32Linear image(pixW, pixH);
+    RGBAFloat32 background = RGBAFloat32::White();
+    RGBAFloat32 brush = RGBAFloat32::Black();;
+    Painter ptr(image);
+
+    PixelViewBound targetBound = ptr.getPixelViewBound();
+
+    Pairf sceneOrigin = {0.f, 0.f};
+    float sceneToPixelScale = 0.1f;
+    // align scene and 
+    // scene
+
+    // bounds = get scene bounding box
+    // mapping = map full scene to pixelviewbound
+    // sceneview = view from mapping,scene
+    // for each e in scene
+    //     ebound = get bound of e
+    //     renderbound = get pixelbound from mapping, ebound
+    //     renderbound = renderbound.cropto targetbound
+    //     quadtree (origin = ebound.origin, d = maxdim e)
+    //     sizeOfPixelInScene = 1.f / sceneToPixelScale;
+    //     maxError = sizeOfPixelInScene
+    //     add to tree (distanceof(e), err = maxError)
+    //     for xy in rendebound
+    //        scenecoord = mapping.pixeltoscene(xy)
+    //        dist = tree.sample(scenecoord)
+    //        outpixel = colorize dist or skip
+
+
+
+    return;
 }
 
 int main()
@@ -496,8 +545,8 @@ int main()
     //testDrawRandDots();
     //testDrawRandLines();
     //testTriangles1();
-    test2DSDF1();
-    //test2DSDF2();
+    //test2DSDF1();
+    test2DSDFPolygon();
     return 0;
 }
 

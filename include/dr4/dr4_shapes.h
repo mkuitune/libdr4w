@@ -27,6 +27,10 @@ namespace dr4 {
 			return points.points.size();
 		}
 
+		const Pairf& operator[](size_t idx) const {
+			return points.points[idx];
+		}
+
 		Line2D lineAt(size_t idx) const {
 			size_t s = points.points.size();
 			return { points.points[idx % s], points.points[(idx + 1) % s] };

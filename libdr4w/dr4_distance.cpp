@@ -67,3 +67,44 @@ float dr4::LineDistance2D::unsignedDistance(Pairf p) const {
 	return dist.norm();
 }
 #endif
+
+float dr4::PolygonDistance2D::signedDistance(Pairf p) const
+{
+	size_t N = m_polygon.size();
+	Pairf dist0 = p - m_polygon[0];
+	float d = dist0.dot(dist0);
+
+	float s = 1.0f;
+
+	for (size_t i = 0, j = N - 1; i < N; j = i, i++)
+	{
+		auto pi = m_polygon[i];
+		auto pj = m_polygon[j];
+		Pairf e = pj - pi;
+		Pairf w = p - pi;
+		Pairf b = w - e * clampf(w.dot(e) / e.dot(e), 0.0f, 1.0f);
+		d = std::min(d, b.dot(b));
+		TripletBool c = { p.y >= pi.y, p.y < pj.y, e.x* w.y > e.y * w.x };
+		if (c.all() || c.allNot())
+			s *= -1.0f;
+	}
+	return s * sqrtf(d);
+}
+
+float dr4::PolygonDistance2D::unsignedDistance(Pairf p) const
+{
+	size_t N = m_polygon.size();
+	Pairf dist0 = p - m_polygon[0];
+	float d = dist0.dot(dist0);
+
+	for (size_t i = 0, j = N - 1; i < N; j = i, i++)
+	{
+		auto pi = m_polygon[i];
+		auto pj = m_polygon[j];
+		Pairf e = pj - pi;
+		Pairf w = p - pi;
+		Pairf b = w - e * clampf(w.dot(e) / e.dot(e), 0.0f, 1.0f);
+		d = std::min(d, b.dot(b));
+	}
+	return sqrtf(d);
+}

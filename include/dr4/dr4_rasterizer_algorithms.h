@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dr4/dr4_image.h>
+#include <dr4/dr4_rasterizer_area.h>
 
 namespace dr4 {
 
@@ -8,6 +9,10 @@ namespace dr4 {
         ImageRGBA32Linear& m_img;
         size_t height;
         Painter(dr4::ImageRGBA32Linear& img) :m_img(img), height(img.dim2()) {}
+
+        PixelViewBound getPixelViewBound() {
+            return PixelViewBound::Create(m_img.size());
+        }
 
         inline void SetPixel(float x, float y, const dr4::RGBAFloat32& color)
         {

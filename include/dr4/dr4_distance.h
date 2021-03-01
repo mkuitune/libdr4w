@@ -86,7 +86,7 @@ namespace dr4 {
 		Pairf m_normal;
 		Paird m_normald;
 		//float m_vecdot;
-		double m_vecdot;
+		float m_vecdot;
 
 	public:
 
@@ -105,6 +105,36 @@ namespace dr4 {
 			m_normald.y = m_normal.y;
 			m_normal = m_normal.normalized();
 			m_normald = m_normald.normalized();
+		}
+
+		float signedDistance(Pairf pnt) const;
+		float signedDistance(float x, float y) const {
+			return signedDistance({ x,y });
+		};
+		float unsignedDistance(Pairf pnt) const;
+		float unsignedDistance(float x, float y) const {
+			return unsignedDistance({ x,y });
+		}
+
+		std::function<float(float, float)> bindSigned() const{
+			return[this](float a, float b) {
+				return this->signedDistance(a, b);
+			};
+		}
+		
+		std::function<float(float, float)> bindUnsigned() const{
+			return[this](float a, float b) {
+				return this->unsignedDistance(a, b);
+			};
+		}
+	};
+	
+	class PolygonDistance2D {
+		Polygon2D m_polygon;
+
+	public:
+
+		PolygonDistance2D(const Polygon2D& polygon):m_polygon(polygon) {
 		}
 
 		float signedDistance(Pairf pnt) const;

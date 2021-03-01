@@ -319,7 +319,7 @@ namespace dr4 {
 			return getDeepSampleInt(0, x, y);
 		}
 		
-		float getIdxAtFromInt(size_t idx, float x, float y) const {
+		size_t getIdxAtFromInt(size_t idx, float x, float y) const {
 			while(nodes[idx].childs != 0){
 				idx = nodes[idx].getChildIdx(x, y);
 			}
