@@ -77,6 +77,22 @@ namespace dr4 {
 	inline double clampd(double val, double minval, double maxval){
 		return val < minval ? minval : (val > maxval ? maxval : val); 
 	}
+	// smoothstep between 0 and 1.
+	inline float smoothstepf(float x) {
+		return x * x * (3.f - 2.f * x);
+	}
+	// smoothstep between 0 and 1. Clip values at ends.
+	inline float smoothstepClampf(float x) {
+		float u =  x > 0.f ? (x < 1.f? x : 1.f) : 0.f; 
+		return u * u * (3.f - 2.f * u);
+	}
+	
+	// smoothstep between start and end. Clip values at ends.
+	inline float smoothstepClampRangef(float x, float rangeStart, float rangeEnd) {
+		float u = clampf(x, rangeStart, rangeEnd);
+		u = u / (rangeEnd- rangeStart);
+		return u * u * (3.f - 2.f * u);
+	}
 
 	//inline float CLAMP(float x, float minVal, float maxVal)
 	//{

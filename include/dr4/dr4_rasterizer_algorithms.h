@@ -3,7 +3,13 @@
 #include <dr4/dr4_image.h>
 #include <dr4/dr4_rasterizer_area.h>
 
+#include <map>
+
 namespace dr4 {
+
+    struct Gradient {
+        std::map<float, RGBAFloat32>
+    };
 
     struct Painter {
         ImageRGBA32Linear& m_img;
@@ -11,7 +17,18 @@ namespace dr4 {
         Painter(dr4::ImageRGBA32Linear& img) :m_img(img), height(img.dim2()) {}
 
         PixelViewBound getPixelViewBound() {
-            return PixelViewBound::Create(m_img.size());
+            auto size = m_img.size();
+            return PixelViewBound::Create(size.first, size.second);
+        }
+
+        void distanceToGradient(PixelViewBound renderArea,  ) {
+        }
+
+        void fillByDistance(size_t ) {
+
+        }
+
+        void strokeByDistance() {
         }
 
         inline void SetPixel(float x, float y, const dr4::RGBAFloat32& color)

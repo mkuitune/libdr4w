@@ -35,11 +35,19 @@ namespace dr4 {
             return res;
         }
 
-        static PixelViewBound Create(const std::pair<size_t, size_t>& size) {
+        static PixelViewBound Create(size_t width, size_t height) {
             PixelViewBound res;
             res.origin = { 0,0 };
-            res.width = size.first;
-            res.height = size.second;
+            res.width = width;
+            res.height = height;
+            return res;
+        }
+        
+        static PixelViewBound Create(PairIdx origin, size_t width, size_t height) {
+            PixelViewBound res;
+            res.origin = origin;
+            res.width = width;
+            res.height = height;
             return res;
         }
     };

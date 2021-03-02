@@ -20,13 +20,14 @@ namespace dr4 {
 			return { x.cover(v.x),
 				y.cover(v.y) };
 		}
-		
+#if 0		
 		Span2f cover(const Tripletf& v) const {
 				return { x.cover(v.x),
 					y.cover(v.y) };
 		}
+#endif
 		
-		Span2f cover(float xpos, float ypos, float zpos) const {
+		Span2f cover(float xpos, float ypos) const {
 			return { x.cover(xpos),
 				y.cover(ypos)};
 		}
