@@ -79,5 +79,12 @@ namespace dr4 {
 				dr4::lerp(src.b, dst.b, u),
 				dr4::lerp(src.a, dst.a, u) };
 		}
+
+		LookUpTable<RGBAFloat32> GradientToLUT(const GradientFloat32& gradient){
+			size_t nSamp = 1024;
+
+			std::vector<RGBAFloat32> samples;
+			return LookUpTable<RGBAFloat32>::Create(samples, 0.f, 1.f);
+		}
 }
 

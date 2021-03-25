@@ -9,12 +9,9 @@
 #include <glm/vec2.hpp>
 #include <dr4/dr4_unitvector3f.h>
 #include <stdint.h>
+#include <dr4/dr4_rasterizer_area.h>
 
 namespace dr4 {
-
-	// REMOVE THIS TEXT Rasterizer operation is decoupled from camera configuration
-
-
 	struct ViewPort {
 		unsigned width;
 		unsigned height;
@@ -26,28 +23,59 @@ namespace dr4 {
 		}
 	};
 
-	// This is similar to camera in 3d
-	struct Camera2D /* Could be as well ViewConfig2D but now naming follows 3D styling */{
+	struct LinearMap2D {
+		float s;
+		Pairf offset;
+		Pairf origin;
+
+		Pairf map(const Pairf& p) const {
+			return ((p + offset) * s) + origin;
+		}
+	};
+	// RasterConfig2D is a 'Camera2D' contains all related information for mapping between pixel- and scenespace
+	// - not really a _camera_ 
+	struct RasterConfig2D /* Could be as well ViewConfig2D but now naming follows 3D styling */{
 		float scale;
-		glm::vec2 center;
+		float iscale;
 		// The 'up' is always y-up
 
-		static Camera2D Default(){
-			Camera2D cam;
+		RasterDomain m_rasterDomain;
+		SceneDomain m_sceneDomain;
+
+		inline LinearMap2D rasterToScene() const {
+			Pairf offset = {-1.f * ((float) m_rasterDomain.origin.x), -1.f * ((float)m_rasterDomain.origin.y)};
+			Pairf origin = { m_sceneDomain.span.x.min, m_sceneDomain.span.y.min };
+			return { iscale, offset, origin};
+		}
+		inline LinearMap2D sceneToRaster() const {
+			Pairf offset = { -m_sceneDomain.span.x.min, -m_sceneDomain.span.y.min };
+			float originx = (float)m_rasterDomain.origin.x;
+			float originy = (float)m_rasterDomain.origin.y;
+			Pairf origin = { originx, originy };
+			return { scale, offset, origin };
+		}
+
+		static RasterConfig2D Create(
+			RasterDomain rasterDomain,
+			SceneDomain sceneDomain
+		) {
+			RasterConfig2D cfg;
+			cfg.m_rasterDomain = rasterDomain;
+			cfg.m_sceneDomain = sceneDomain;
+			cfg.scale = ((float)cfg.m_rasterDomain.width) / cfg.m_sceneDomain.span.x.length();
+			cfg.iscale = 1.f / cfg.scale;
+			return cfg;
+		}
+
+#if 0
+		static RasterConfig2D Default(){
+			RasterConfig2D cfg;
 			cam.scale = 1.0f;
 			cam.center = {0.0f, 0.0f};
 			return cam;
 		}
+#endif
 	};
-
-	struct ViewSetup2D {
-		glm::vec2 lowerLeft;
-		glm::vec2 upperRight;
-		
-		float getScale() const;
-		static ViewSetup2D CreateForView(const ViewPort port, const Camera2D cfg);
-	};
-
 
 	struct ViewConfig {
 		glm::vec3 position;

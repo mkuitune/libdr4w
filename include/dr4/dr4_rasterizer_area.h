@@ -5,7 +5,7 @@
 #include <optional>
 
 namespace dr4 {
-    struct PixelViewBound {
+    struct RasterDomain {
         PairIdx origin;
         size_t width;
         size_t height;
@@ -14,7 +14,7 @@ namespace dr4 {
             return { origin.x + width, origin.y + height };
         }
 
-        std::optional<PixelViewBound> cropTo(const PixelViewBound& ref) const {
+        std::optional<RasterDomain> cropTo(const RasterDomain& ref) const {
             PairIdx myex = extrema();
             PairIdx refex = ref.extrema();
 
@@ -28,23 +28,29 @@ namespace dr4 {
             if (lowery >= uppery)
                 return std::nullopt;
 
-            PixelViewBound res;
+            RasterDomain res;
             res.origin = { lowerx, lowery };
             res.width = upperx - lowerx;
             res.height = uppery - lowery;
             return res;
         }
 
-        static PixelViewBound Create(size_t width, size_t height) {
-            PixelViewBound res;
+        float aspectRatio() const {
+            float w = (float)width;
+            float h = (float)height;
+            return w / h;
+        }
+
+        static RasterDomain Create(size_t width, size_t height) {
+            RasterDomain res;
             res.origin = { 0,0 };
             res.width = width;
             res.height = height;
             return res;
         }
         
-        static PixelViewBound Create(PairIdx origin, size_t width, size_t height) {
-            PixelViewBound res;
+        static RasterDomain Create(PairIdx origin, size_t width, size_t height) {
+            RasterDomain res;
             res.origin = origin;
             res.width = width;
             res.height = height;
@@ -52,19 +58,19 @@ namespace dr4 {
         }
     };
 
-    struct SceneViewBound {
+    struct SceneDomain {
         Span2f span;
 
-        std::optional<SceneViewBound > cropTo(const SceneViewBound& other) const {
+        std::optional<SceneDomain > cropTo(const SceneDomain& other) const {
             auto res = span.intersect(other.span);
             if (!res.second)
                 return std::nullopt;
 
-            SceneViewBound  boundOut = { res.first };
+            SceneDomain  boundOut = { res.first };
             return boundOut;
         }
 
-        SceneViewBound Create(const Pairf& origin, float width, float height) {
+        SceneDomain Create(const Pairf& origin, float width, float height) {
             Pairf maxPoint = origin;
             maxPoint.x += width;
             maxPoint.y += height;

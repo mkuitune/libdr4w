@@ -50,13 +50,18 @@ struct RendererTestSetup1 {
 
     unsigned width = 640;
     unsigned height = 480;
-    dr4::Camera2D camera;
+    dr4::RasterConfig2D camera;
     std::shared_ptr<dr4::IRasterizer> rasterizer;
     //dr4::ParallelExecutor executor;
     dr4::SequentialExecutor executor;
+    dr4::RasterDomain rasterDomain;
+
     RendererTestSetup1() { 
+        rasterDomain.origin = { 0,0 };
+        rasterDomain.width = width;
+        rasterDomain.height = height;
         rasterizer = dr4::CreateRasterizer(width, height);
-        camera = dr4::Camera2D::Default();
+        //camera = dr4::RasterConfig2D::Default();
     }
 };
 
@@ -418,7 +423,6 @@ void test2DSDF1() {
 
 #endif
 }
-
 void test2DSDFPolygon() {
     using namespace dr4;
     using namespace std;
@@ -510,7 +514,7 @@ void proto2DRendering() {
     RGBAFloat32 brush = RGBAFloat32::Black();;
     Painter ptr(image);
 
-    PixelViewBound targetBound = ptr.getPixelViewBound();
+    RasterDomain targetBound = ptr.getFullRasterDomain();
 
     Pairf sceneOrigin = {0.f, 0.f};
     float sceneToPixelScale = 0.1f;
@@ -533,9 +537,30 @@ void proto2DRendering() {
     //        dist = tree.sample(scenecoord)
     //        outpixel = colorize dist or skip
 
-
-
     return;
+}
+
+
+void testGradient01() {
+    using namespace dr4;
+    using namespace std;
+    const int w = 512;
+    const int h = 256;
+    ImageRGBA32Linear image(w, h);
+    RGBAFloat32 background = RGBAFloat32::Navy();
+    RGBAFloat32 black = RGBAFloat32::Black();
+    RGBAFloat32 red = RGBAFloat32::Red();
+    RGBAFloat32 blue = RGBAFloat32::Blue();
+
+    Painter ptr(image);
+    image.setAll(background);
+
+
+    ptr.writeOut("testgrad_01.png");
+}
+
+void interpolateTest01() {
+    
 }
 
 int main()
@@ -546,7 +571,9 @@ int main()
     //testDrawRandLines();
     //testTriangles1();
     //test2DSDF1();
-    test2DSDFPolygon();
+    //test2DSDFPolygon();
+    //testGradient01();
+    interpolateTest01();
     return 0;
 }
 

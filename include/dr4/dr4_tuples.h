@@ -109,6 +109,45 @@ namespace dr4
 
 	struct Tripletf {
 		float x, y, z;
+
+		float norm2() const {
+			return x * x + y * y + z * z;
+		}
+		float norm() const {
+			return sqrtf(norm2());
+		}
+		float dot(const Tripletf& rhs) const {
+			return x * rhs.x + y * rhs.y + z * rhs.z;
+		}
+
+		Tripletf normalized() const {
+			float len = norm();
+			return {x / len, y / len, z/len};
+		}
+
+		Tripletf operator-(const Tripletf & p) const{
+			return {x - p.x, y -p.y, z - p.z};
+		}
+		
+		Tripletf operator+(const Tripletf & p) const{
+			return {x + p.x, y + p.y, z + p.z};
+		}
+
+		Tripletf operator*(float p) const {
+			return { x * p, y * p, z * p};
+		}
+		
+		void operator*=(float p){
+			x *= p; y *= p; z *= p;
+		}
+
+		float operator[](size_t idx) const {
+			switch (idx) {
+				case 0:return x;
+				case 1:return y;
+				default:return z;
+			}
+		}
 	};
 
 	struct TripletIdx { size_t x, y, z; };

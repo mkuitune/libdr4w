@@ -8,7 +8,7 @@
 namespace dr4 {
 
     struct Gradient {
-        std::map<float, RGBAFloat32>
+        std::map<float, RGBAFloat32> points;
     };
 
     struct Painter {
@@ -16,12 +16,12 @@ namespace dr4 {
         size_t height;
         Painter(dr4::ImageRGBA32Linear& img) :m_img(img), height(img.dim2()) {}
 
-        PixelViewBound getPixelViewBound() {
+        RasterDomain getFullRasterDomain() {
             auto size = m_img.size();
-            return PixelViewBound::Create(size.first, size.second);
+            return RasterDomain::Create(size.first, size.second);
         }
 
-        void distanceToGradient(PixelViewBound renderArea,  ) {
+        void distanceToGradient(RasterDomain renderArea) {
         }
 
         void fillByDistance(size_t ) {
@@ -29,6 +29,10 @@ namespace dr4 {
         }
 
         void strokeByDistance() {
+        }
+
+        void fill(const dr4::RGBAFloat32& color) {
+            m_img.fill(color);
         }
 
         inline void SetPixel(float x, float y, const dr4::RGBAFloat32& color)

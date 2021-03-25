@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <limits>
 
+#include <dr4/dr4_splines.h>
+
 namespace dr4 {
 
 	struct SRGBA {
@@ -90,6 +92,10 @@ namespace dr4 {
 		static RGBAFloat32 Pink() { return{ 1.f, 105.f / 255.f, 180.f / 255.f, 1.f }; } // Actually HotPink...
 	};
 
+	struct GradientFloat32 {
+		std::map<float, RGBAFloat32> intervals;
+	};
+
 	RGBAFloat32 ToRGBAFloat(const SRGBA& bcolor);
 	RGBA ToRGBA(const SRGBA& bcolor);
 	RGBAFloat32 BlendPreMultipliedAlpha(const RGBAFloat32 source, const RGBAFloat32 target);
@@ -99,4 +105,7 @@ namespace dr4 {
 	SRGBA ToSRGBA(RGBA fcolor);
 	RGBA BlendPreMultiplied(RGBA src, RGBA trgt);
 	RGBAFloat32 Lerp(const RGBAFloat32& src, const RGBAFloat32& dst, float u);
+
+	LookUpTable<RGBAFloat32> GradientToLUT(const GradientFloat32& gradient);
+
 }

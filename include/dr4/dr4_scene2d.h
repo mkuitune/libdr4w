@@ -41,7 +41,7 @@ namespace dr4 {
 	};
 
 	struct ColorFill {
-		RGBAFloat32 color;
+		RGBAFloat32 colorFill;
 	};
 
 	enum class Content2D { Fill, Lines };

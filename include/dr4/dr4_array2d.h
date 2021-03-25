@@ -94,6 +94,26 @@ namespace dr4 {
 			for (auto& v : m_data) v = value;
 		}
 
+		typename std::vector<T>::const_iterator constIteratorAt(size_t x, size_t y) const {
+			return m_data.begin() + index2d(x, y);
+		}
+
+		typename std::vector<T>::iterator iteratorAt(size_t x, size_t y) {
+			return m_data.begin() + index2d(x, y);
+		}
+
+		void copyRowFrom(const Array2D<T>& src, PairIdx pos, PairIdx srcPos, size_t count) {
+			count = std::min(count, m_dim2 - pos.x);
+			auto srcStart = src.constIteratorAt(srcPos.x, srcPos.y);
+			auto srcEnd = srcStart + count;
+			auto targetStart = iteratorAt(pos.x, pos.y);
+			std::copy(srcStart, srcEnd, targetStart);
+		}
+
+		void fill(const T& element) {
+			std::fill(m_data.begin(), m_data.end(), element);
+		}
+
 	};
 
 }

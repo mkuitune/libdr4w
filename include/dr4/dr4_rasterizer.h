@@ -18,7 +18,7 @@ namespace dr4 {
 	public:
 		virtual ~IRasterizer() {}
 		// Append to task queue in frame tasks. Frame task results are to be applied to the render buffer in order
-		virtual void draw2D(Camera2D camera, const Scene2D& scene, FrameTasks& tasks) = 0;
+		virtual void draw2D(RasterConfig2D config, const Scene2D& scene, FrameTasks& tasks) = 0;
 		virtual void applyResult(FrameTasks& tasks) = 0;
 		//virtual void draw(Camera3D camera, const Scene3D& scene) = 0;
 		virtual ImageRGBA8SRGB getColorAsSRGB() const = 0;

@@ -6,10 +6,12 @@
 #pragma once
 
 #include <dr4/dr4_unitvector3f.h>
+#include <dr4/dr4_tuples.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+
 
 namespace dr4 {
 
@@ -94,10 +96,15 @@ namespace dr4 {
 		return u * u * (3.f - 2.f * u);
 	}
 
-	//inline float CLAMP(float x, float minVal, float maxVal)
-	//{
-	//		return std::min(std::max(x, minVal), maxVal);
-	//	}
+#if 0
+    //https://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
+	inline double fastPow(double a, double b) {
+		union { double d; int x[2]; } u = { a };
+		u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
+		u.x[0] = 0;
+		return u.d;
+	}
+#endif
 
 	inline float KahanSumf(float* inputStart, float* inputEnd) {
 

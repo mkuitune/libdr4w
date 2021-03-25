@@ -180,6 +180,7 @@
     <ClInclude Include="..\include\dr4\dr4_span2f.h" />
     <ClInclude Include="..\include\dr4\dr4_span3f.h" />
     <ClInclude Include="..\include\dr4\dr4_spanf.h" />
+    <ClInclude Include="..\include\dr4\dr4_splines.h" />
     <ClInclude Include="..\include\dr4\dr4_task.h" />
     <ClInclude Include="..\include\dr4\dr4_tuples.h" />
     <ClInclude Include="..\include\dr4\dr4_unitvector2f.h" />
