@@ -1,9 +1,8 @@
 #include <iostream>
-using namespace std;
-
 #include <filesystem>
 #include <algorithm>
 #include <optional>
+#include <fstream>
 
 #include <dr4/dr4_rand.h>
 #include <dr4/dr4_camera.h>
@@ -17,6 +16,9 @@ using namespace std;
 #include <dr4/dr4_quadtree.h>
 #include <dr4/dr4_distance.h>
 #include <dr4/dr4_span2f.h>
+#include <dr4/dr4_analysis.h>
+
+using namespace std;
 
 //------------------------------------------------------
 // Test utilites. Figure out what to do with these
@@ -559,8 +561,29 @@ void testGradient01() {
     ptr.writeOut("testgrad_01.png");
 }
 
+void TextDump(const std::string& str, const std::string& filename) {
+    ofstream file(filename);
+    file << str;
+    file.close();
+}
+
+void interpolateAndWrite(const std::vector<dr4::Pairf>& points, const std::string filename) {
+
+    using namespace dr4;
+    using namespace std;
+    size_t interval = 5;
+    size_t samplecount = 30;
+    auto interpolated = Analysis::InterpolateData(points, interval, samplecount);
+    //auto interpolated = Analysis::InterpolateDataSpline(points, 10);
+    auto mathscript = Analysis::PointsAndInterpolatedToMathematica(points, interpolated);
+    TextDump(mathscript, filename);
+}
+
 void interpolateTest01() {
-    
+    using namespace dr4;
+    using namespace std;
+    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, "plot01.nb");
+    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, "plot02.nb");
 }
 
 int main()

@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\dr4\dr4_analysis.h" />
     <ClInclude Include="..\include\dr4\dr4_array2d.h" />
     <ClInclude Include="..\include\dr4\dr4_camera.h" />
     <ClInclude Include="..\include\dr4\dr4_color.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="dr4_rasterizer.cpp" />
     <ClCompile Include="dr4_rasterizer_algorithms.cpp" />
     <ClCompile Include="dr4_scene2d.cpp" />
+    <ClCompile Include="dr4_splines.cpp" />
     <ClCompile Include="dr4_task.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

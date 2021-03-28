@@ -96,6 +96,9 @@
     <ClInclude Include="..\include\dr4\dr4_splines.h">
       <Filter>include/dr4w</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_analysis.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dr4_image.cpp">
@@ -132,6 +135,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dr4_distance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dr4_splines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -63,6 +63,47 @@ namespace dr4 {
 	};
 #endif
 
+	template<class REAL>
+	struct LoopRange{
+		size_t endIdx;
+		REAL delta;
+		REAL valueStart;
+		REAL valueEnd;
+
+		LoopRange(size_t samples, REAL first, REAL last) {
+			endIdx = samples;
+			delta = (last - first) / (samples - 1);
+			valueStart = first;
+			valueEnd = last;
+		}
+
+		size_t size() const {
+			return endIdx;
+		}
+
+		struct iterator {
+			size_t i;
+			REAL val;
+			REAL delta;
+
+			iterator operator++() {
+				i++;
+				val += delta;
+				return *this;
+			}
+
+			bool operator!=(const iterator& rhs) const {
+				return i != rhs.i;
+			}
+
+			REAL& operator*() {
+				return val;
+			}
+		};
+
+		iterator begin() const { return { 0, valueStart, delta }; }
+		iterator end() const { return{ endIdx, valueEnd, delta }; }
+	};
 
 	template<class VEC_T>
 	class LookUpTable {
@@ -79,7 +120,7 @@ namespace dr4 {
 
 		VEC_T getNearest(Real_t x) const {
 			if (x < m_rangeStart)
-				return m_samples.begin();
+				return m_samples.front();
 			else if (x >= m_rangeEnd)
 				return m_samples.back();
 
@@ -87,6 +128,22 @@ namespace dr4 {
 
 			return m_samples[idx];
 		}
+
+		std::vector<std::pair<Real_t, VEC_T>> getSamples() const { 
+			std::vector<std::pair<Real_t, VEC_T>> res;
+			Real_t dx = (m_rangeEnd - m_rangeStart) / (m_samples.size() - 1);
+			Real_t x = m_rangeStart;
+			for (auto s : m_samples) {
+				res.push_back({x, s});
+				x += dx;
+			}
+			return res;
+		}
+
+		// Source domain start
+		Real_t sourceStart() const { return m_rangeStart; }
+		// Source domain end
+		Real_t sourceEnd() const { return m_rangeEnd; }
 
 		bool empty()const { return m_samples.empty(); }
 
@@ -145,14 +202,24 @@ namespace dr4 {
 			if (x < m_spans[0].start.x)
 				return m_spans[0].start.y;
 			for (auto& s : m_spans) {
-				if (x < s.start.x)
+				if (x < s.end.x)
 					return s.evalAt(x);
 			}
 			return m_spans.back().end.y;
 		}
 
-		LookUpTable<float> CreateByXLUT(size_t sampleCount) const{ 
-			const float dist = m_spans.back().end.x;
+		float sourceStart() const { return m_spans.front().start.x; }
+		float sourceEnd() const { return m_spans.back().end.x; }
+
+		std::vector<Pairf> toPoints() const {
+			std::vector<Pairf> res;
+			for (const auto& span : m_spans) res.push_back(span.start);
+			res.push_back(m_spans.back().end);
+			return res;
+		}
+
+		LookUpTable<float> createByXLUT(size_t sampleCount) const{ 
+			const float dist = (m_spans.back().end.x - m_spans.front().start.x);
 			float delta = dist / (sampleCount - 1);
 			const float start = 0;
 			std::vector<float> samples;
@@ -330,13 +397,13 @@ namespace dr4 {
 #endif
 
 	inline PiecewiseSpline2 Interpolate2(std::vector<Pairf> points, size_t samplesPerSpan) {
-
-		std::vector<Pairf> samples;
 		// catmull-rom needs additional point at start and end to evaluate the tangents there
-		size_t nSplines = samples.size() - 2;
-		size_t last = nSplines - 1;
-		Pairf virtualStart = samples[0] - (samples[1] - samples[0]);
-		Pairf virtualEnd = samples[last] + (samples[last] - samples[last - 1]);
+		std::vector<Pairf> samplesOut;
+		size_t nSplines = points.size() - 1;
+		size_t lastPointIdx = nSplines - 1;
+		size_t lastData = points.size() - 1;
+		Pairf virtualStart = points[0] - (points[1] - points[0]);
+		Pairf virtualEnd = points[lastData] + (points[lastData] - points[lastData - 1]);
 
 		const float du = 1.0f / (samplesPerSpan - 1); // don't eval the last point except in the last spline
 
@@ -344,18 +411,18 @@ namespace dr4 {
 			Pairf p0 = (i == 0) ? virtualStart : points[i - 1];
 			Pairf p1 = points[i];
 			Pairf p2 = points[i + 1];
-			Pairf p3 = (i == last) ? virtualEnd : points[i + 2];
+			Pairf p3 = (i == lastPointIdx) ? virtualEnd : points[i + 2];
 			SplineCatmullRom2 spline = SplineCatmullRom2::Create(p0, p1, p2, p3);
 			
 			// don't eval the last point except in the last spline
-			size_t lastSampleIdx = i == last ? samplesPerSpan : samplesPerSpan - 1;
+			size_t lastSampleIdx = (i == lastPointIdx ? samplesPerSpan : samplesPerSpan - 1);
 			float u = 0.f;
 			for (size_t j = 0; j < lastSampleIdx; j++) { 
+				samplesOut.push_back(spline.eval(u));
 				u += du;
-				samples.push_back(spline.eval(u));
 			}
 		}
-		return PiecewiseSpline2::Create(samples);
+		return PiecewiseSpline2::Create(samplesOut);
 	}
 	
 	inline PiecewiseSpline3 Interpolate3(std::vector<Tripletf> points, size_t samplesPerSpan) {
