@@ -108,6 +108,29 @@ namespace dr4 {
 			return valuesOut;
 		}
 		
+		static std::vector<Pairf> InterpolateDataSmooth(
+			std::vector<Pairf> points, size_t samplesPerSpan, size_t sampleCount) {
+			PiecewiseSpline2 spline = Interpolate2Smooth(points, samplesPerSpan);
+			LookUpTable<float> lut = spline.createByXLUT(sampleCount);
+			std::vector<Pairf> valuesOut;
+#if 0
+			// get actual look up table samples...
+			auto pts = lut.getSamples();
+			for (auto p : pts) {
+				valuesOut.push_back({p.first, p.second});
+			}
+#endif
+#if 1
+			// or lookup within given range - this simulates actual use better
+			LoopRange<float> rangeOver(sampleCount, lut.sourceStart(), lut.sourceEnd());
+			for (auto x : rangeOver) {
+				Pairf sample = { x, lut.getNearest(x) };
+				valuesOut.push_back(sample);
+			}
+#endif
+			return valuesOut;
+		}
+		
 		static std::vector<Pairf> InterpolateDataSpline(
 			std::vector<Pairf> points, size_t samplesPerSpan){
 			PiecewiseSpline2 spline = Interpolate2(points, samplesPerSpan);

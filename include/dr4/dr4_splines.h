@@ -312,7 +312,7 @@ namespace dr4 {
 	};
 
 	static float VecNorm2(const Pairf& p) { return p.norm2(); }
-
+#if 0
 	struct CatmullRomComponents {
 		const float t0;
 		const float t1;
@@ -372,13 +372,107 @@ namespace dr4 {
 			return { comp, p0, p1, p2, p3 };
 		}
 	};
+#endif
 
+	struct SplineCatmullRom2 {
+		const Pairf p0;
+		const Pairf p1;
+		const Pairf p2;
+		const Pairf p3;
+
+		float GetT(float t, float alpha, const Pairf & p0, const Pairf & p1) const
+		{
+			auto d = p1 - p0;
+			float a = d.dot(d);
+			float b = pow(a, alpha * .5f);
+			return (b + t);
+		}
+
+		Pairf CatMullRom(float t /* between 0 and 1 */, float alpha = .5f /* between 0 and 1 */)const
+		{
+			float t0 = 0.0f;
+			float t1 = GetT(t0, alpha, p0, p1);
+			float t2 = GetT(t1, alpha, p1, p2);
+			float t3 = GetT(t2, alpha, p2, p3);
+
+			t = lerp(t1, t2, t);
+
+			Pairf A1 = p0 * ((t1 - t) / (t1 - t0)) + p1 * ((t - t0) / (t1 - t0));
+			Pairf A2 = p1 * ((t2 - t) / (t2 - t1)) + p2 * ((t - t1) / (t2 - t1));
+			Pairf A3 = p2 * ((t3 - t) / (t3 - t2)) + p3 * ((t - t2) / (t3 - t2));
+			Pairf B1 = A1 * ((t2 - t) / (t2 - t0)) + A2 * ((t - t0) / (t2 - t0));
+			Pairf B2 = A2 * ((t3 - t) / (t3 - t1)) + A3 * ((t - t1) / (t3 - t1));
+			Pairf C =  B1 * ((t2 - t) / (t2 - t1)) + B2 * ((t - t1) / (t2 - t1));
+			return C;
+		}
+		Pairf eval(float u) const {
+			return CatMullRom(u, 0.5f);
+		}
+
+		static SplineCatmullRom2 Create(const Pairf& p0, const Pairf& p1, const Pairf& p2, const Pairf& p3) {
+			return { p0, p1, p2, p3 };
+		}
+	};
+
+	struct SplineBezierCubic {
+		
+		const Pairf p0;
+		const Pairf p1;
+		const Pairf p2;
+		const Pairf p3;
+
+		Pairf BezierCubic(float t) const {
+			float it = 1.f - t;
+			float it2 = it * it;
+			float it3 = it2 * it;
+			float t2 = t * t;
+			float t3 = t * t * t;
+			return p0 * it3 
+				 + p1 * (3 * t * it2)
+				 + p2 * (3.f * t2 * it)
+				 + p3 * t3;
+		}
+
+		Pairf eval(float u) const {
+			return BezierCubic(u);
+		}
+
+
+		// the curve passes through a, b, c - get tangent points fst, snd
+		// a->fst ... snd <- b .... c
+		//void constructInterpolants(Pairf a, Pairf b, Pairf c, Pairf& fst, Pairf& snd) {
+		//	const float thr = 1.f / 3.f;
+		//	auto ac = c - a;
+		//	auto nilb = c - a;
+		//	fst = b + (ac * thr);
+		//	snd = b - (bd * thr);
+		//}
+		
+		// the curve passes through a, b, c d - get tangent points fst, snd
+		// a ...b->fst ... snd <- c .... d
+		void constructInterpolants(Pairf a, Pairf b, Pairf c, Pairf d, Pairf& fst, Pairf& snd) {
+			const float thr = 1.f / 3.f;
+			auto ac = c - a;
+			auto bd = d - b;
+			fst = b + (ac * thr);
+			snd = b - (bd * thr);
+		}
+
+		static SplineBezierCubic Create(const Pairf& p0, const Pairf& p1, const Pairf& p2, const Pairf& p3) {
+			return { p0, p1, p2, p3 };
+		}
+
+	};
+
+#if 0
 	struct SplineCatmullRom3 {
 		CatmullRomComponents comp;
 		const Tripletf p0;
 		const Tripletf p1;
 		const Tripletf p2;
 		const Tripletf p3;
+
+
 
 		Tripletf eval(float u) const {
 			return comp.eval(u, p0, p1, p2, p3);
@@ -389,6 +483,7 @@ namespace dr4 {
 			return { comp, p0, p1, p2, p3 };
 		}
 	};
+#endif
 
 
 #if 0
@@ -400,7 +495,9 @@ namespace dr4 {
 #endif
 
 	PiecewiseSpline2 Interpolate2(std::vector<Pairf> points, size_t samplesPerSpan);
-	
+
+	PiecewiseSpline2 Interpolate2Smooth(std::vector<Pairf> points, size_t samplesPerSpan);
+#if 0
 	inline PiecewiseSpline3 Interpolate3(std::vector<Tripletf> points, size_t samplesPerSpan) {
 
 		std::vector<Tripletf> samples;
@@ -429,6 +526,7 @@ namespace dr4 {
 		}
 		return PiecewiseSpline3::Create(samples);
 	}
+#endif
 
 #if 0
 	template<class VEC_T>

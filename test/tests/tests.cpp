@@ -574,17 +574,15 @@ void testGradient01() {
     RGBAFloat32 blue = RGBAFloat32::Blue();
 
     GradientFloat32 grad1 = { { {0.0f, white}, {1.0f, black} } };
-    //GradientFloat32 grad2 = { { {0.0f, red}, {0.6f, yellow}, {1.f, blue }} };
-    GradientFloat32 grad2 = { { {0.0f, red}, {0.5f, yellow}, {1.f, {0.f, 0.f,1.0f, 1.f}}} };
+    GradientFloat32 grad2 = { { {0.0f, red}, {0.6f, yellow}, {1.f, blue }} };
     GradientFloat32 grad3 = { { {0.0f, red}, {0.8f, yellow}, {1.f, blue }} };
-    //GradientFloat32 grad4 = { { {0.0f, yellow},{0.5f, green} ,{1.f, blue }} };
-    GradientFloat32 grad4 = { { {0.0f, red}, {0.5f, yellow}, {1.f, blue }} };
+    GradientFloat32 grad4 = { { {0.0f, yellow},{0.5f, green} ,{1.f, blue }} };
     //GradientFloat32 grad4 = { { {0.0f, red},{0.5f, yellow}} };
 
-    //outputGradient(grad1, "testgrad_01.png");
+    outputGradient(grad1, "testgrad_01.png");
     outputGradient(grad2, "testgrad_02.png");
-    //outputGradient(grad3, "testgrad_03.png");
-    //outputGradient(grad4, "testgrad_04.png");
+    outputGradient(grad3, "testgrad_03.png");
+    outputGradient(grad4, "testgrad_04.png");
 }
 
 

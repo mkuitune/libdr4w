@@ -195,15 +195,28 @@ namespace dr4 {
 			alphaKeys.push_back({p.first, lab.alpha});
 		}
 
-		auto sl = Interpolate2(lKeys, samplesPerSpan);
-		auto sa = Interpolate2(aKeys, samplesPerSpan);
-		auto sb = Interpolate2(bKeys, samplesPerSpan);
-		auto salpha = Interpolate2(alphaKeys, samplesPerSpan);
+		PiecewiseSpline2 sl;
+		PiecewiseSpline2 sa;
+		PiecewiseSpline2 sb;
+		PiecewiseSpline2 salpha;
 
+		if (lKeys.size() > 2) {
+			sl = Interpolate2Smooth(lKeys, samplesPerSpan);
+			sa = Interpolate2Smooth(aKeys, samplesPerSpan);
+			sb = Interpolate2Smooth(bKeys, samplesPerSpan);
+			salpha = Interpolate2Smooth(alphaKeys, samplesPerSpan);
+		}
+		else {
+			sl = PiecewiseSpline2::Create(lKeys);
+			sa = PiecewiseSpline2::Create(aKeys);
+			sb = PiecewiseSpline2::Create(bKeys);
+			salpha = PiecewiseSpline2::Create(alphaKeys);
+		}
+#if 0
 		Analysis::TextDump(Analysis::ToCSV(sl), "sl.csv");
 		Analysis::TextDump(Analysis::ToCSV(sa), "sa.csv");
 		Analysis::TextDump(Analysis::ToCSV(sb), "sb.csv");
-
+#endif
 		auto lutl = sl.createByXLUT(nSamples);
 		auto luta = sa.createByXLUT(nSamples);
 		auto lutb = sb.createByXLUT(nSamples);
