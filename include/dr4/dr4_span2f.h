@@ -10,6 +10,7 @@
 #include <glm/mat4x4.hpp>
 
 #include <stdexcept>
+#include <vector>
 
 namespace dr4 {
 	struct Span2f {
@@ -55,6 +56,14 @@ namespace dr4 {
 		Pairf minimumPoint() const noexcept { return { x.min, y.min}; }
 		Pairf center() const noexcept { return (maximumPoint() + minimumPoint()) * 0.5f; }
 		Pairf maximumPoint() const noexcept{ return { x.max, y.max}; }
+
+		std::vector<Pairf> rayIntersects(Pairf origin, Pairf dir) {
+
+		}
+
+		std::pair<Pairf, Pairf> clipLine(Pairf fst, Pairf snd) const{
+
+		}
 
 		// Return corners. 
 		void getCorners(Pairf out[4]) {

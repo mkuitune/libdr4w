@@ -35,6 +35,10 @@ namespace dr4 {
             return res;
         }
 
+        std::pair<Pairf, Pairf> clipLine(Pairf lineStart, Pairf lineEnd) const{
+            
+        }
+
         float aspectRatio() const {
             float w = (float)width;
             float h = (float)height;

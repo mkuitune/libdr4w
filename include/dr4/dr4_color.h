@@ -92,12 +92,32 @@ namespace dr4 {
 		static RGBAFloat32 Pink() { return{ 1.f, 105.f / 255.f, 180.f / 255.f, 1.f }; } // Actually HotPink...
 	};
 
-	struct GradientFloat32 {
-		std::map<float, RGBAFloat32> intervals;
+	struct LABFloat32 {
+		float l;
+		float a;
+		float b;
+		float alpha;
+
+		Quadrupletf toQuadruplet() const { return { l,a,b }; }
+		static LABFloat32 Create(const Quadrupletf& t) {
+			return { t.x, t.y, t.z, t.w};
+		}
 	};
+
+	// Use keys only in range [0,1]
+	//typedef std::map<float, RGBAFloat32> GradientFloat32;
+	struct GradientFloat32 : public std::map<float, RGBAFloat32>{
+	};
+
+	RGBAFloat32 ToRGBAFloat(const LABFloat32& lab);
+	LABFloat32 ToLAB(const RGBAFloat32& col);
 
 	RGBAFloat32 ToRGBAFloat(const SRGBA& bcolor);
 	RGBA ToRGBA(const SRGBA& bcolor);
+
+	// Use premultiplied alpha internally for rendering pipelines, such as rendering mipmaps
+	// Don't expose it to "public" interfaces - use non-premultiplied in public interfaces
+	// and convert to premultiplied within pipeline if needed
 	RGBAFloat32 BlendPreMultipliedAlpha(const RGBAFloat32 source, const RGBAFloat32 target);
 	RGBAFloat32 BlendAlpha(const RGBAFloat32 source, const RGBAFloat32 target);
 	SRGBA ToSRGBA(const RGBAFloat32& fcolor);

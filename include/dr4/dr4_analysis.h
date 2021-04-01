@@ -1,13 +1,43 @@
 #pragma once
 
 #include <dr4/dr4_splines.h>
+
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
 
 namespace dr4 {
 
 	class Analysis {
 	public:
+
+		static void TextDump(const std::string& str, const std::string& filename) {
+			using namespace std;
+			ofstream file(filename);
+			file << str;
+			file.close();
+		}
+
+		static std::string ToCSV(const PiecewiseSpline2& spline) {
+			std::ostringstream out;
+			auto delim = ";";
+			out << spline.m_spans[0].start.x << delim << spline.m_spans[0].start.y << "\n";
+			for (auto l : spline.m_spans) {
+				out << l.end.x << delim << l.end.y << "\n";
+			}
+			return out.str();
+		}
+
+		static std::vector<Pairf> SampleLinearSpan(Pairf start, Pairf end, size_t nSamples) {
+			using namespace std;
+			vector<Pairf> out(nSamples);
+			Pairf delta = (end - start) / ((float)(nSamples - 1));
+			RayEnumeratorPairf generator = {start, delta};
+			generate(out.begin(), out.end(), generator);
+			return out;
+		}
 
 		static std::string PointsToMathematica(const std::vector<Pairf>& values) {
 			using namespace std;

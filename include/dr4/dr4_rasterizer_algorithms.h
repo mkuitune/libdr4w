@@ -35,6 +35,29 @@ namespace dr4 {
             m_img.fill(color);
         }
 
+        void applyGradient(Pairf fst, Pairf snd, LookUpTable<RGBAFloat32>& grad) {
+
+            assert(!fst.isEqualTo(snd));
+
+
+            auto dline = snd - fst;
+            auto len = dline.norm();
+
+            dline = dline.normalized();
+
+            auto d = Pairf{ dline.y, dline.x};
+
+            for (unsigned i = 0; i < m_img.dim2(); i++) {
+                for (unsigned j = 0; j < m_img.dim1(); j++) {
+                    Pairf y = {(float)j,(float)i};
+                    auto delta = y - fst;
+                    auto lenAlong = delta.dot(dline);
+                    auto rel = lenAlong / len;
+                    BlendPixeli(j, i, grad.getNearest(rel));
+                }
+            }
+        }
+
         inline void SetPixel(float x, float y, const dr4::RGBAFloat32& color)
         {
             if (x < 0.0f || y < 0.0f)
@@ -59,6 +82,21 @@ namespace dr4 {
         }
         
         inline void BlendPixeli(unsigned x, unsigned y, const dr4::RGBAFloat32& color)
+        {
+            if (x < 0.0f || y < 0.0f)
+                return;
+            unsigned ux = (unsigned)x;
+            unsigned uy = (unsigned)y;
+            if (ux >= m_img.dim1() || uy >= m_img.dim2())
+                return;
+
+            auto dst = m_img.at(x, (height - y - 1));
+            //auto out = BlendPreMultipliedAlpha(color, dst);
+            auto out = BlendAlpha(color, dst);
+            m_img.set(x, (height - y - 1), out);
+        }
+        
+        inline void BlendPixelPremuli(unsigned x, unsigned y, const dr4::RGBAFloat32& color)
         {
             if (x < 0.0f || y < 0.0f)
                 return;

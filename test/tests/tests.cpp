@@ -17,6 +17,7 @@
 #include <dr4/dr4_distance.h>
 #include <dr4/dr4_span2f.h>
 #include <dr4/dr4_analysis.h>
+#include <dr4/dr4_timer.h>
 
 using namespace std;
 
@@ -543,40 +544,105 @@ void proto2DRendering() {
 }
 
 
-void testGradient01() {
-    using namespace dr4;
+void outputGradient(dr4::GradientFloat32 grad, const std::string& name) {
     using namespace std;
+    using namespace dr4;
+
     const int w = 512;
     const int h = 256;
     ImageRGBA32Linear image(w, h);
     RGBAFloat32 background = RGBAFloat32::Navy();
-    RGBAFloat32 black = RGBAFloat32::Black();
-    RGBAFloat32 red = RGBAFloat32::Red();
-    RGBAFloat32 blue = RGBAFloat32::Blue();
-
+    auto lut = GradientToLUT(grad);
     Painter ptr(image);
     image.setAll(background);
 
+    ptr.applyGradient({0,0 }, {512,0},lut);
+    ptr.writeOut(name);
 
-    ptr.writeOut("testgrad_01.png");
 }
 
-void TextDump(const std::string& str, const std::string& filename) {
-    ofstream file(filename);
-    file << str;
-    file.close();
+void testGradient01() {
+    using namespace dr4;
+    using namespace std;
+
+    RGBAFloat32 background = RGBAFloat32::Navy();
+    RGBAFloat32 black = RGBAFloat32::Black();
+    RGBAFloat32 white = RGBAFloat32::White();
+    RGBAFloat32 yellow = RGBAFloat32::Yellow();
+    RGBAFloat32 green = RGBAFloat32::Green();
+    RGBAFloat32 red = RGBAFloat32::Red();
+    RGBAFloat32 blue = RGBAFloat32::Blue();
+
+    GradientFloat32 grad1 = { { {0.0f, white}, {1.0f, black} } };
+    //GradientFloat32 grad2 = { { {0.0f, red}, {0.6f, yellow}, {1.f, blue }} };
+    GradientFloat32 grad2 = { { {0.0f, red}, {0.5f, yellow}, {1.f, {0.f, 0.f,1.0f, 1.f}}} };
+    GradientFloat32 grad3 = { { {0.0f, red}, {0.8f, yellow}, {1.f, blue }} };
+    //GradientFloat32 grad4 = { { {0.0f, yellow},{0.5f, green} ,{1.f, blue }} };
+    GradientFloat32 grad4 = { { {0.0f, red}, {0.5f, yellow}, {1.f, blue }} };
+    //GradientFloat32 grad4 = { { {0.0f, red},{0.5f, yellow}} };
+
+    //outputGradient(grad1, "testgrad_01.png");
+    outputGradient(grad2, "testgrad_02.png");
+    //outputGradient(grad3, "testgrad_03.png");
+    //outputGradient(grad4, "testgrad_04.png");
+}
+
+
+
+//
+// Interpolation tests
+//
+
+float compareLutPerf(const dr4::PiecewiseSpline2& spline, size_t sampleCount, size_t lutSize) {
+    using namespace std;
+    using namespace dr4;
+    auto lut = spline.createByXLUT(lutSize);
+
+    float xstart = spline.m_spans[0].start.x;
+    float xlast = spline.m_spans.back().end.x;
+    float dx = (xlast - xstart) / (sampleCount - 1);
+    float junk = 0.f;
+
+    // sample spline - lets just warm up first time
+    float x;
+    size_t i;
+
+    // warmup
+	for (i = 0, x = xstart; i < sampleCount; i++, x+= dx) {
+        junk += spline.evalAt(x);
+	}
+
+    Timer timer;
+    // sample spline 
+	for (i = 0, x = xstart; i < sampleCount; i++, x+= dx) {
+        junk += spline.evalAt(x);
+	}
+    double splineMs = timer.milliseconds();
+
+    timer.reset();
+	for (i = 0, x = xstart; i < sampleCount; i++, x+= dx) {
+        junk += lut.getNearest(x);
+	}
+    double lutms = timer.milliseconds();
+
+    cout << "sampleCount:" << sampleCount << " lutSize:" << lutSize << endl;
+    cout << "Spline ms:" << splineMs << endl;
+    cout << "LUT    ms:" << lutms << endl;
+
+    return junk;
 }
 
 void interpolateAndWrite(const std::vector<dr4::Pairf>& points, const std::string filename) {
 
     using namespace dr4;
     using namespace std;
-    size_t interval = 5;
+    size_t interval = 10;
     size_t samplecount = 30;
     auto interpolated = Analysis::InterpolateData(points, interval, samplecount);
     //auto interpolated = Analysis::InterpolateDataSpline(points, 10);
     auto mathscript = Analysis::PointsAndInterpolatedToMathematica(points, interpolated);
-    TextDump(mathscript, filename);
+    Analysis::TextDump(mathscript, filename);
+
 }
 
 void interpolateTest01() {
@@ -584,6 +650,25 @@ void interpolateTest01() {
     using namespace std;
     interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, "plot01.nb");
     interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, "plot02.nb");
+
+#if 0
+    // Impromptu spline vs lut perf testing
+    // Debug lut is 4x faster than spline
+    // Release lut is 7x faster than spline
+    // perftest - spline vs lut
+    size_t nSpans = 100;
+    auto samples = Analysis::SampleLinearSpan({ 0.0f, 0.0f }, {1.0f, 1.0f}, nSpans);
+    auto spline = PiecewiseSpline2::Create(samples);
+    //size_t sampleCount = 10000000000;
+    size_t sampleCount = 10000000;
+    //size_t sampleCount = 100000;
+    float junk = compareLutPerf(spline, sampleCount,100);
+    cout << junk << endl;
+    junk = compareLutPerf(spline, sampleCount, 1000);
+    cout << junk << endl;
+    junk = compareLutPerf(spline, sampleCount, 10000);
+    cout << junk << endl;
+#endif
 }
 
 int main()
@@ -595,7 +680,7 @@ int main()
     //testTriangles1();
     //test2DSDF1();
     //test2DSDFPolygon();
-    //testGradient01();
+    testGradient01();
     interpolateTest01();
     return 0;
 }
