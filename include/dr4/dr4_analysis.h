@@ -108,6 +108,21 @@ namespace dr4 {
 			return valuesOut;
 		}
 		
+		static std::vector<Pairf> InterpolateDataBezier(
+			std::vector<Pairf> points, size_t samplesPerSpan, size_t sampleCount) {
+			PiecewiseSpline2 spline = Interpolate2Bezier(points, samplesPerSpan);
+			LookUpTable<float> lut = spline.createByXLUT(sampleCount);
+			std::vector<Pairf> valuesOut;
+
+			// Lookup within given range 
+			LoopRange<float> rangeOver(sampleCount, lut.sourceStart(), lut.sourceEnd());
+			for (auto x : rangeOver) {
+				Pairf sample = { x, lut.getNearest(x) };
+				valuesOut.push_back(sample);
+			}
+			return valuesOut;
+		}
+		
 		static std::vector<Pairf> InterpolateDataSmooth(
 			std::vector<Pairf> points, size_t samplesPerSpan, size_t sampleCount) {
 			PiecewiseSpline2 spline = Interpolate2Smooth(points, samplesPerSpan);

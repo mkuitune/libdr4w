@@ -17,6 +17,7 @@ std::string dr4::GeometryErrorToString(dr4::GeometryResult e)
 	case GeometryResult::CantSolveConstraints: return "GeometryError::CantSolveConstraints";
 	case GeometryResult::NoIntersection: return "GeometryError::NoIntersection";
 	case GeometryResult::InputRangeEmpty: return "GeometryError::InputRangeEmpty";
+	case GeometryResult::InputElementCountTooSmall: return "GeometryError::InputElementCountTooSmall";
 	case GeometryResult::NotEnoughVertices: return "GeometryError::NotEnoughVertices";
 	case GeometryResult::BasisVectorsNotOrthogonal: return "GeometryError::BasisVectorNotOrghogonal";
 	case GeometryResult::IncompatibleDimension: return "GeometryError::IncompatibleDimension";

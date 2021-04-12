@@ -640,7 +640,16 @@ void interpolateAndWrite(const std::vector<dr4::Pairf>& points, const std::strin
     //auto interpolated = Analysis::InterpolateDataSpline(points, 10);
     auto mathscript = Analysis::PointsAndInterpolatedToMathematica(points, interpolated);
     Analysis::TextDump(mathscript, filename);
+}
+void interpolateAndWriteBez(const std::vector<dr4::Pairf>& points, const std::string filename) {
 
+    using namespace dr4;
+    using namespace std;
+    size_t interval = 10;
+    size_t samplecount = 30;
+    auto interpolated = Analysis::InterpolateDataBezier(points, interval, samplecount);
+    auto mathscript = Analysis::PointsAndInterpolatedToMathematica(points, interpolated);
+    Analysis::TextDump(mathscript, filename);
 }
 
 void interpolateTest01() {
@@ -648,6 +657,10 @@ void interpolateTest01() {
     using namespace std;
     interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, "plot01.nb");
     interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, "plot02.nb");
+    
+    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, "plot01_bez.nb");
+    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, "plot02_bez.nb");
+    //interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {3.f, 1.f} }, "plot02_bez.nb");
 
 #if 0
     // Impromptu spline vs lut perf testing

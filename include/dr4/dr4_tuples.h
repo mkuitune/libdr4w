@@ -23,6 +23,9 @@ namespace dr4
 		float dot(const Pairf& rhs) const {
 			return x * rhs.x + y * rhs.y;
 		}
+		float kross(const Pairf& rhs) const {
+			return x* rhs.y - y * rhs.x; // the z component of cross product
+		}
 		Pairf normalized() const {
 			float len = norm();
 			return {x / len, y / len};
@@ -56,10 +59,25 @@ namespace dr4
 			return idx == 0 ? x : y;
 		}
 
+		Pairf rot90() const { return { -y, x }; }
+
 		bool isEqualTo(const Pairf& rhs)const {
 			return Float32::GeometryAreEqual(x, rhs.x) && Float32::GeometryAreEqual(y, rhs.y);
 		}
 
+	};
+
+	struct NormalizedPairf {
+		Pairf pair;
+		bool valid;
+		NormalizedPairf(const Pairf& input) {
+			float inputLen = input.norm();
+			valid = !Float32::GeometryIsCloseToZero(inputLen);
+			pair = valid ? (input / inputLen) : Pairf{0.f, 0.f};
+		}
+		const Pairf& value() const { return pair; }
+		bool isValid() const { return valid; }
+		operator bool() const { return valid; }
 	};
 	
 	struct RayEnumeratorPairf {

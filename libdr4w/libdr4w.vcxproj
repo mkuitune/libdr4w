@@ -170,11 +170,13 @@
     <ClInclude Include="..\include\dr4\dr4_image.h" />
     <ClInclude Include="..\include\dr4\dr4_io.h" />
     <ClInclude Include="..\include\dr4\dr4_math.h" />
+    <ClInclude Include="..\include\dr4\dr4_metadata.h" />
     <ClInclude Include="..\include\dr4\dr4_quadtree.h" />
     <ClInclude Include="..\include\dr4\dr4_rand.h" />
     <ClInclude Include="..\include\dr4\dr4_rasterizer.h" />
     <ClInclude Include="..\include\dr4\dr4_rasterizer_algorithms.h" />
     <ClInclude Include="..\include\dr4\dr4_rasterizer_area.h" />
+    <ClInclude Include="..\include\dr4\dr4_result_types.h" />
     <ClInclude Include="..\include\dr4\dr4_scene2d.h" />
     <ClInclude Include="..\include\dr4\dr4_scene3d.h" />
     <ClInclude Include="..\include\dr4\dr4_shapes.h" />

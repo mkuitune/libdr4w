@@ -6,6 +6,7 @@
 
 #pragma once
 #include <string>
+#include <dr4/dr4_util.h>
 
 namespace dr4 {
 	enum class GeometryResult {
@@ -18,6 +19,7 @@ namespace dr4 {
 		CantSolveConstraints,
 		NoIntersection,
 		InputRangeEmpty,
+		InputElementCountTooSmall,
 		NotEnoughVertices,
 		BasisVectorsNotOrthogonal,
 		IncompatibleDimension,
@@ -25,5 +27,6 @@ namespace dr4 {
 	};
 
 	std::string GeometryErrorToString(GeometryResult e);
+
 }
 

@@ -102,6 +102,12 @@
     <ClInclude Include="..\include\dr4\dr4_timer.h">
       <Filter>include/dr4w</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_result_types.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_metadata.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dr4_image.cpp">

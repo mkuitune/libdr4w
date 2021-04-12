@@ -93,5 +93,91 @@ namespace dr4 {
 		}
 		return PiecewiseSpline2::Create(samplesOut);
 	}
+
+	PiecewiseSpline2 Interpolate2Bezier(std::vector<Pairf> points, size_t samplesPerSpan){
+		// 1. Points to bezier spline
+		// 2. eval bezier splines
+
+		auto bezierResult = SplineBezierCubic::InterpolatePoints(points);
+		if (!bezierResult)
+			return {};
+
+		auto beziers = bezierResult.value();
+
+		std::vector<Pairf> samplesOut;
+		size_t nSplines = beziers.size();
+		size_t lastPointIdx = nSplines - 1;
+		size_t lastData = points.size() - 1;
+
+		const float du = 1.0f / (samplesPerSpan - 1); // don't eval the last point except in the last spline
+
+		for (size_t i = 0; i < nSplines; i++) {
+			// don't eval the last point except in the last spline
+			size_t lastSampleIdx = (i == lastPointIdx ? samplesPerSpan : samplesPerSpan - 1);
+			float u = 0.f;
+			const auto& spline = beziers[i];
+			for (size_t j = 0; j < lastSampleIdx; j++) {
+				samplesOut.push_back(spline.eval(u));
+				u += du;
+			}
+		}
+		return PiecewiseSpline2::Create(samplesOut);
+	}
+
+	SplineBezierCubic::GeometryResultBezier SplineBezierCubic::InterpolatePoints(
+		const std::vector<Pairf>& points, std::optional<Pairf> firstDirection, std::optional<Pairf> lastDirection){
+		using namespace std;
+		size_t pCount = points.size();
+		if (pCount < 3)
+			return SplineBezierCubic::GeometryResultBezier::Error(GeometryResult::InputElementCountTooSmall);
+			
+		size_t splineCount = pCount - 1;
+		size_t last = pCount - 2;
+		GeometryResultBezier::result_type_t res;
+		
+		optional<NormalizedPairf> fstDir = nullopt;
+		if (firstDirection)
+			fstDir = NormalizedPairf(firstDirection.value());
+		optional<NormalizedPairf> lastDir = nullopt;
+		if (lastDirection)
+			lastDir = NormalizedPairf(lastDirection.value());
+
+
+		for (size_t i = 0; i < splineCount; i++){
+			if (i == 0) {
+				auto a = points[0];
+				auto b = points[1];
+				auto c = points[2];
+				auto handles = constructInterpolantsFirst(fstDir, a, b, c);
+				if (!handles)
+					return SplineBezierCubic::GeometryResultBezier::Error(handles.meta());
+				auto h = handles.value();
+				res.push_back(SplineBezierCubic::Create(a, h.first, h.second, b));
+			}
+			else if (i == last){
+				auto a = points[i -1];
+				auto b = points[i];
+				auto c = points[i + 1];
+				auto handles = constructInterpolantsLast(lastDir,a, b, c);
+				if (!handles)
+					return SplineBezierCubic::GeometryResultBezier::Error(handles.meta());
+				auto h = handles.value();
+				res.push_back(SplineBezierCubic::Create(b, h.first, h.second, c));
+			}
+			else {
+				auto a = points[i - 1];
+				auto b = points[i];
+				auto c = points[i + 1];
+				auto d = points[i + 2];
+				auto handles = constructInterpolants(a, b, c, d);
+				if (!handles)
+					return SplineBezierCubic::GeometryResultBezier::Error(handles.meta());
+				auto h = handles.value();
+				res.push_back(SplineBezierCubic::Create(b, h.first, h.second, c));
+			}
+		}
+
+		return GeometryResultBezier::Success(res);
+	}
 }
 

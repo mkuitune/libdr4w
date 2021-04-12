@@ -2,7 +2,10 @@
 
 #include <dr4/dr4_math.h>
 #include <dr4/dr4_tuples.h>
+#include <dr4/dr4_result_types.h>
+#include <dr4/dr4_metadata.h>
 
+#include <optional>
 #include <vector>
 #include <map>
 
@@ -312,67 +315,6 @@ namespace dr4 {
 	};
 
 	static float VecNorm2(const Pairf& p) { return p.norm2(); }
-#if 0
-	struct CatmullRomComponents {
-		const float t0;
-		const float t1;
-		const float t2;
-		const float t3;
-		const float t10;
-		const float t21;
-		const float t32;
-		const float t20;
-		const float t31;
-	
-		template<class VEC_T>
-		VEC_T eval(float u, const VEC_T& p0, const VEC_T& p1, const VEC_T& p2, const VEC_T& p3) const {
-			float t = lerp(t1, t2, u);
-			VEC_T A1 = p0 * ((t1 - t) / t10) + p1 * ((t - t0) / t10);
-			VEC_T A2 = p1 * ((t2 - t) / t21) + p2 * ((t - t1) / t21);
-			VEC_T A3 = p2 * ((t3 - t) / t32) + p3 * ((t - t2) / t32);
-
-			VEC_T B1 = A1 * ((t2 - t) / t20) + A2 * ((t - t0) / t20);
-			VEC_T B2 = A2 * ((t3 - t) / t31) + A3 * ((t - t1) / t31);
-
-			return B1 * ((t2 - t) / (t2 - t1)) + B2 * ((t - t1) / (t2 - t1));
-		}
-
-		// normaij = VecNorm2(v_i - v_j)
-		static CatmullRomComponents Create(float norm01, float norm12, float norm23) {
-			const static float a2 = 0.25f; // sqrt(...) ^ 0.5 (for centripetal catmull-rom)
-			float p01 = powf(norm01, 0.25f);
-			float p12 = powf(norm12, 0.25f);
-			float p23 = powf(norm23, 0.25f);
-			float t0 = 0.f;
-			float t1 = p01 + t0;
-			float t2 = p12 + t1;
-			float t3 = p23 + t2;
-			float t10 = t1 - t0;
-			float t21 = t2 - t1;
-			float t32 = t3 - t2;
-			float t20 = t2 - t0;
-			float t31 = t3 - t1;
-			return { t0, t1, t2, t3, t10, t21, t32, t20, t31};
-		}
-	};
-
-	struct SplineCatmullRom2 {
-		CatmullRomComponents comp;
-		const Pairf p0;
-		const Pairf p1;
-		const Pairf p2;
-		const Pairf p3;
-
-		Pairf eval(float u) const {
-			return comp.eval(u, p0, p1, p2, p3);
-		}
-
-		static SplineCatmullRom2 Create(const Pairf& p0, const Pairf& p1, const Pairf& p2, const Pairf& p3) {
-			auto comp = CatmullRomComponents::Create((p1 - p0).norm2(), (p2 - p1).norm2(), (p3 - p1).norm2());
-			return { comp, p0, p1, p2, p3 };
-		}
-	};
-#endif
 
 	struct SplineCatmullRom2 {
 		const Pairf p0;
@@ -423,14 +365,14 @@ namespace dr4 {
 
 		Pairf BezierCubic(float t) const {
 			float it = 1.f - t;
-			float it2 = it * it;
-			float it3 = it2 * it;
-			float t2 = t * t;
-			float t3 = t * t * t;
-			return p0 * it3 
-				 + p1 * (3 * t * it2)
-				 + p2 * (3.f * t2 * it)
-				 + p3 * t3;
+			float itt = it * it;
+			float ittt = itt * it;
+			float tt = t * t;
+			float ttt = t * t * t;
+			return p0 * ittt
+				+ p1 * (3 * t * itt)
+				+ p2 * (3.f * tt * it)
+				+ p3 * ttt;
 		}
 
 		Pairf eval(float u) const {
@@ -438,117 +380,186 @@ namespace dr4 {
 		}
 
 
-		// the curve passes through a, b, c - get tangent points fst, snd
-		// a->fst ... snd <- b .... c
-		//void constructInterpolants(Pairf a, Pairf b, Pairf c, Pairf& fst, Pairf& snd) {
-		//	const float thr = 1.f / 3.f;
-		//	auto ac = c - a;
-		//	auto nilb = c - a;
-		//	fst = b + (ac * thr);
-		//	snd = b - (bd * thr);
-		//}
-		
-		// the curve passes through a, b, c d - get tangent points fst, snd
-		// a ...b->fst ... snd <- c .... d
-		void constructInterpolants(Pairf a, Pairf b, Pairf c, Pairf d, Pairf& fst, Pairf& snd) {
-			const float thr = 1.f / 3.f;
-			auto ac = c - a;
-			auto bd = d - b;
-			fst = b + (ac * thr);
-			snd = b - (bd * thr);
+		//
+		// Builder helpers
+		//
+
+	private:
+		// get normal for b for points a .. b .. c . Here the input vectors ab = b-a and cb = b-c are already computed
+		static GeometryResultPairf getNormal(Pairf ab, Pairf b, Pairf cb) {
+			auto ablen = ab.norm();
+			auto cblen = cb.norm();
+
+			auto ac = ab - cb;
+			auto aclen = ac.norm();
+
+			// This is the only condition where we really can't proceed - 2 or 3 points close to same
+			if (Float32::GeometryIsCloseToZero(ablen) || Float32::GeometryIsCloseToZero(cblen)|| Float32::GeometryIsCloseToZero(aclen))
+				return GeometryResultPairf::Error(GeometryResult::AreaCloseToZero);
+
+			ab = ab / ablen;
+			cb = cb / cblen;
+
+			auto n = ab + cb;
+			auto nlen = n.norm();
+
+			if (Float32::GeometryIsCloseToZero(nlen) ) {
+				// lines colinear, exract normal from the tangent
+				Pairf normal = { -ab.y, ab.x };
+				return GeometryResultPairf::Success(normal);
+			}
+			else {
+				n = n / nlen;
+				auto sign = ac.kross(ab) > 0.f ? 1.f : -1.f; // we want the normal always point "left" along the path so that 
+															 // forward and backward tangent always can be computed the same way
+				auto nout = n * sign;
+				return GeometryResultPairf::Success(nout);
+			}
 		}
 
+		static Pairf backTangential(const Pairf& normal, float scale) {
+			Pairf b = {-normal.y, normal.x};
+			return b * scale;
+		}
+		static Pairf foreTangential(const Pairf& normal, float scale) {
+			Pairf f = {normal.y, -normal.x};
+			return f * scale;
+		}
+
+		static constexpr float k() { return 0.5f; }
+		// the curve passes through a, [b, c],  d - get tangent points fst, snd
+		// a ...b->fst ... snd <- c .... d
+		static GeometryResultHandles2D constructInterpolants(Pairf a, Pairf b, Pairf c, Pairf d) {
+
+			auto ab = b - a;
+			auto cb = b - c;
+			auto bc = c - b;
+			auto dc = c - d;
+
+			auto bclen = bc.norm();
+			// If b == c, just use b as point. Remember this is just for interval (b,c)
+			if (Float32::GeometryIsCloseToZero(bclen)) {
+				// TODO: Is a singularity acceptable result? It's mathematically correct at least.
+				return GeometryResultHandles2D::Success({ b, c }); // If b == c, all the points are in single spot
+			}
+
+			Pairf fst;
+			Pairf snd;
+
+			// First point a..b..[fst]..snd..c..d
+			auto nB = getNormal(ab, b, cb);
+			if (nB) {
+				fst = b + foreTangential(nB.value(), bclen * k());
+			}
+			else {
+				// can't compute tangent. Pick a point in the line from b to c (since b != c)
+				fst = b + (bc * k()); // just pick a point in line
+			}
+
+			// Second point a..b..fst..[snd]..c...d
+			auto nC = getNormal(bc, c, dc);
+			if (nC) {
+				snd = c + backTangential(nC.value(), bclen * k());
+			}
+			else {
+				snd = c + (cb * k()); // just pick a point in line
+			}
+
+			return GeometryResultHandles2D::Success({fst, snd}); // If b == c, all the points are in single spot
+
+		}
+
+		// the curve passes through a, b, c - get tangent points fst, snd
+		// a->fst ... snd <- b ... c
+		// The user must give the initial normalized direction for the point fst from a (the length is computed automatically
+		// dirstart can be {0.f, 0.f}
+
+		static Pairf offsetOrOrigin(Pairf p, std::optional<NormalizedPairf> dir, float len) {
+			if (!dir || !(dir.value().isValid())) {
+				return p;
+			}
+			auto d = dir.value().value();
+			return p + d * len;
+
+		}
+
+		static GeometryResultHandles2D  constructInterpolantsFirst(std::optional<NormalizedPairf> dirStart, Pairf a, Pairf b, Pairf c) {
+			auto ab = b - a;
+			auto cb = b - c;
+
+			auto ablen = ab.norm();
+			// If b == c, just use b as point. Remember this is just for interval (b,c)
+			if (Float32::GeometryIsCloseToZero(ablen)) {
+				// TODO: Is a singularity acceptable result? It's mathematically correct at least.
+				return GeometryResultHandles2D::Success({ a, b }); // If b == c, all the points are in single spot
+			}
+			auto len = ablen * k();
+
+			Pairf fst;
+			Pairf snd;
+			
+			// First point a .. [fst] .. snd .. b .. c
+			fst = offsetOrOrigin(a, dirStart, len);
+
+			// Second point a .. fst .. [snd] .. b .. c
+			auto nB = getNormal(ab, b, cb);
+			if (nB) {
+				snd = b + backTangential(nB.value(), len);
+			}
+			else {
+				snd = b - (ab * k()); // just pick a point in line
+			}
+
+			return GeometryResultHandles2D::Success({fst, snd}); // If b == c, all the points are in single spot
+		}
+	
+		// a ... b .. fst .. snd .. c
+		static GeometryResultHandles2D  constructInterpolantsLast(std::optional<NormalizedPairf> dirLast, Pairf a, Pairf b, Pairf c) {
+			auto ab = b - a;
+			auto cb = b - c;
+			auto bc = c - b;
+
+			auto ablen = ab.norm();
+			// If b == c, just use b as point. Remember this is just for interval (b,c)
+			if (Float32::GeometryIsCloseToZero(ablen)) {
+				// TODO: Is a singularity acceptable result? It's mathematically correct at least.
+				return GeometryResultHandles2D::Success({ a, b }); // If b == c, all the points are in single spot
+			}
+			auto len = ablen * k();
+
+			Pairf fst;
+			Pairf snd;
+		
+			snd = offsetOrOrigin(c, dirLast, len);
+
+			// First point a .. b .. [fst] .. snd .. c
+			auto nB = getNormal(ab, b, cb);
+			if (nB) {
+				fst = b + foreTangential(nB.value(), len);
+			}
+			else {
+				fst = b + (bc * k()); // just pick a point in line
+			}
+
+			return GeometryResultHandles2D::Success({fst, snd}); // If b == c, all the points are in single spot
+		}
+
+	public:
 		static SplineBezierCubic Create(const Pairf& p0, const Pairf& p1, const Pairf& p2, const Pairf& p3) {
 			return { p0, p1, p2, p3 };
 		}
 
+		typedef TypedResult<GeometryResult, std::vector<SplineBezierCubic>> GeometryResultBezier;
+
+		static GeometryResultBezier InterpolatePoints(const std::vector<Pairf>& points, std::optional<Pairf> firstDirection = std::nullopt, std::optional<Pairf> lastDirection = std::nullopt);
+
 	};
-
-#if 0
-	struct SplineCatmullRom3 {
-		CatmullRomComponents comp;
-		const Tripletf p0;
-		const Tripletf p1;
-		const Tripletf p2;
-		const Tripletf p3;
-
-
-
-		Tripletf eval(float u) const {
-			return comp.eval(u, p0, p1, p2, p3);
-		}
-
-		static SplineCatmullRom3 Create(const Tripletf& p0, const Tripletf& p1, const Tripletf& p2, const Tripletf& p3) {
-			auto comp = CatmullRomComponents::Create((p1 - p0).norm2(), (p2 - p1).norm2(), (p3 - p1).norm2());
-			return { comp, p0, p1, p2, p3 };
-		}
-	};
-#endif
-
-
-#if 0
-	// centripetal catmull-rom - points between p1 -> p2
-	Pairf splinecatmullrom2(const Pairf& p0, const Pairf& p1, const Pairf& p2, const Pairf& p3, float u) {
-		SplineCatmullRom2 spline = SplineCatmullRom2::Create(p0, p1, p2, p3);
-		return spline.eval(u);
-	}
-#endif
 
 	PiecewiseSpline2 Interpolate2(std::vector<Pairf> points, size_t samplesPerSpan);
 
 	PiecewiseSpline2 Interpolate2Smooth(std::vector<Pairf> points, size_t samplesPerSpan);
-#if 0
-	inline PiecewiseSpline3 Interpolate3(std::vector<Tripletf> points, size_t samplesPerSpan) {
+	
+	PiecewiseSpline2 Interpolate2Bezier(std::vector<Pairf> points, size_t samplesPerSpan);
 
-		std::vector<Tripletf> samples;
-		// catmull-rom needs additional point at start and end to evaluate the tangents there
-		size_t nSplines = samples.size() - 2;
-		size_t last = nSplines - 1;
-		Tripletf virtualStart = samples[0] - (samples[1] - samples[0]);
-		Tripletf virtualEnd = samples[last] + (samples[last] - samples[last - 1]);
-
-		const float du = 1.0f / (samplesPerSpan - 1); // don't eval the last point except in the last spline
-
-		for (size_t i = 0; i < nSplines; i++) {
-			Tripletf p0 = (i == 0) ? virtualStart : points[i - 1];
-			Tripletf p1 = points[i];
-			Tripletf p2 = points[i + 1];
-			Tripletf p3 = (i == last) ? virtualEnd : points[i + 2];
-			SplineCatmullRom3 spline = SplineCatmullRom3::Create(p0, p1, p2, p3);
-			
-			// don't eval the last point except in the last spline
-			size_t lastSampleIdx = i == last ? samplesPerSpan : samplesPerSpan - 1;
-			float u = 0.f;
-			for (size_t j = 0; j < lastSampleIdx; j++) { 
-				u += du;
-				samples.push_back(spline.eval(u));
-			}
-		}
-		return PiecewiseSpline3::Create(samples);
-	}
-#endif
-
-#if 0
-	template<class VEC_T>
-	PiecewiseSpline<VEC_T> InterpolateToPiecewise(
-		const std::vector<VEC_T>& samples, size_t sampleCount, int lookupDim
-	) {
-		// If there are less than 3 points just linear interpolate them;
-		PiecewiseSplineBuilder<VEC_T> builder;
-		if (samples.count() < 2) {
-			return LookUpTable<VEC_T>::CreateEmpty();
-		}
-		if (samples.count() < 3)
-		{
-			builder.add(samples[0], samples[0])
-		}
-
-		// catmull-rom needs additional point at start and end to evaluate the tangents there
-		size_t last = samples.size() - 1;
-		VEC_T virtualStart = samples[0] - (samples[1] - samples[0]);
-		VEC_T virtualEnd = samples[last] + (samples[last] - samples[last - 1])
-
-	}
-#endif
 
 }
