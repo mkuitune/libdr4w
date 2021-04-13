@@ -31,7 +31,7 @@ namespace dr4 {
 			tile.clipxstart = 0;
 			tile.clipystart = 0;
 			tile.clipwidth = tile.sourcewidth;
-			tile.clipheight= tile.sourcewidth;
+			tile.clipheight= tile.sourceheight;
 			return tile;
 		}
 	};
@@ -41,7 +41,7 @@ namespace dr4 {
 		unsigned width;
 		unsigned height;
 
-		RenderBuffer(unsigned w, unsigned h):width(w), height(h), color(width, height) {
+		RenderBuffer(unsigned w, unsigned h):width(w), height(h), color(w, h) {
 		}
 
 		void apply(const RenderBuffer& src, RenderTile area /* target space, not source*/) {
@@ -78,11 +78,11 @@ namespace dr4 {
 		class DrawTask2D : public ITask {
 		public:
 			RasterConfig2D m_config;
-			//std::shared_ptr<Scene2D> m_scene;
 			const Scene2D& m_scene; // do not modify, only read
-			RenderBuffer m_buffer;
 			RenderTile m_tile;
+			RenderBuffer m_buffer;
 			Painter m_painter;
+			//std::shared_ptr<Scene2D> m_scene;
 
 			DrawTask2D(
 				RasterConfig2D config,

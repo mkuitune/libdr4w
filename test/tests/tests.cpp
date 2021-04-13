@@ -21,11 +21,85 @@
 
 using namespace std;
 
+class testharness_t {
+public:
+	class test_t {
+	public:
+        bool run = false;
+		virtual ~test_t() {}
+        virtual std::string name() const = 0;
+		virtual void runtest() = 0;
+        std::string prefix(const std::string& post) { return name() + "-" + post; }
+    };
+
+    typedef std::vector<std::shared_ptr<test_t>> testset_t;
+    static std::map<std::string, testset_t> sets;
+
+    static void run() {
+        using namespace std;
+        cout << "Run tests"  << endl;
+        for (auto& s : sets) {
+            for (auto& t : s.second) {
+                t->runtest();
+                cout << s.first << ":" << t->name() << " DONE" << endl;
+            }
+        }
+    }
+
+    static void run(const std::vector<std::string> filter) {
+        using namespace std;
+        cout << "Run tests"  << endl;
+        for (auto& s : sets) {
+            for (auto& t : s.second) {
+                auto name = t->name();
+                if(std::find(filter.begin(), filter.end(), name) == filter.end())
+                    continue;
+                t->runtest();
+                cout << s.first << ":" << t->name() << " DONE" << endl;
+            }
+        }
+    }
+
+    template<class T>
+    static bool push(const std::string& setname) { 
+        std::shared_ptr<test_t> ptr(new T());
+        (sets[setname]).emplace_back((ptr)); 
+        return true;
+    }
+};
+std::map<std::string, testharness_t::testset_t> testharness_t::sets;
+
+#define TESTFUN(family_, testname_) class  testname_ : public testharness_t::test_t { public:\
+    static bool latched;\
+    virtual ~testname_() {} \
+    virtual std::string name() const override {return #testname_;}\
+    virtual void runtest() override; \
+}; \
+bool testname_::latched = testharness_t::push<testname_>(#family_); \
+void testname_::runtest()
+
+
+#if 0
+class foottst : public testharness_t::test_t {
+public:
+    static bool latched;
+    virtual ~foottst() {}
+    void impl();
+    virtual void operator()() override { impl(); }
+};
+bool foottst::latched = testharness_t::push<foottst>("testfamily");
+void foottst::impl()
+{
+}
+#endif
+
+
 //------------------------------------------------------
 // Test utilites. Figure out what to do with these
 //------------------------------------------------------
 
-void testrand() {
+TESTFUN(common, testrand){
+//void testrand() {
     using namespace dr4;
     RandFloat r(-1.0, 1.0);
     size_t n = 30;
@@ -34,7 +108,8 @@ void testrand() {
     DoTimes(n, [&]() {cout << i.rand() << endl; });
 }
 
-void testImageIO() {
+TESTFUN(common, imageIO){
+//void testImageIO() {
     using namespace dr4;
     auto numberpathres = Resources::GetResourcePath(PathString("Images/uvtest-numbers.png"));
     if (!numberpathres)
@@ -46,7 +121,7 @@ void testImageIO() {
         return;
     auto& numberimg = numberreadres.first;
 
-    writeImageAsPng(*numberimg, "numbers.png");
+    writeImageAsPng(*numberimg, prefix("numbers.png"));
 }
 
 struct RendererTestSetup1 {
@@ -95,7 +170,8 @@ dr4::Scene2D GetTestScene01(){
     return builder.build();
 }
 
-void sceneTest01() {
+TESTFUN(scene, scenetest01){
+//void sceneTest01() {
     using namespace dr4;
     RendererTestSetup1 state;
 
@@ -105,10 +181,11 @@ void sceneTest01() {
     state.executor.runBlock(tasks.tasks);
     state.rasterizer->applyResult(tasks);
     auto image = state.rasterizer->getColorAsSRGB();
-    writeImageAsPng(image, "sceneTest01.png");
+    writeImageAsPng(image, prefix("out.png"));
 }
 
-void testDrawRandLines() {
+TESTFUN(rasterize, drawRandomLines){
+//void testDrawRandLines() {
     using namespace dr4;
     using namespace std;
     const int w = 512;
@@ -135,10 +212,11 @@ void testDrawRandLines() {
         yprev = y;
     }
 
-    ptr.writeOut("testDrawRandLines.png");
+    ptr.writeOut(prefix("out.png"));
 }
 
-void testDrawRandDots() {
+TESTFUN(rasterize, drawRandomDots){
+//void testDrawRandDots() {
     using namespace dr4;
     using namespace std;
     const int w = 256;
@@ -159,10 +237,11 @@ void testDrawRandDots() {
         image.set(x, y, brush);
     }
     auto imageOut = convertRBGA32LinearToSrgb(image);
-    writeImageAsPng(imageOut, "testDrawRandDots.png");
+    writeImageAsPng(imageOut, prefix("out.png"));
 }
 
-void testTriangles1() {
+TESTFUN(rasterize, triangles1){
+//void testTriangles1() {
     using namespace dr4;
     using namespace std;
     const int w = 256;
@@ -177,17 +256,17 @@ void testTriangles1() {
     image.setAll(background);
     Razz::DrawTriangle(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
-    ptr.writeOut("testTriangles1.png");
+    ptr.writeOut(prefix("01.png"));
 
     image.setAll(background);
     Razz::DrawTriangle2(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
-    ptr.writeOut("testTriangles2.png");
+    ptr.writeOut(prefix("02.png"));
 
     image.setAll(background);
     Razz::DrawTriangle3(ptr, black, 10, 10, 30,10, 20, 30);
     Razz::DrawLine(ptr, red, 10, 10, 30, 30);
-    ptr.writeOut("testTriangles3.png");
+    ptr.writeOut(prefix("03.png"));
 }
 
 namespace dr4 {
@@ -226,7 +305,8 @@ namespace dr4 {
     }
 }
 
-void test2DSDF1() {
+TESTFUN(sdf, sdf1){
+//void test2DSDF1() {
     using namespace dr4;
     using namespace std;
     const int w = 256;
@@ -249,7 +329,7 @@ void test2DSDF1() {
     for (auto line : polygon2) {
         Razz::DrawLine(ptr, blue, line.fst, line.snd);
     }
-    ptr.writeOut("test2DSDF1_1.png");
+    ptr.writeOut(prefix("1.png"));
 
     //
     // ASDF test - use pixel coordinates for tree to simplify initial testing
@@ -285,7 +365,7 @@ void test2DSDF1() {
 #endif
     auto quadtree = builder.build();
 
-    outputTreeDbg("treedbg1.png", quadtree);
+    outputTreeDbg(prefix("treedbg1.png"), quadtree);
 
     image.setAll(white);
     float thickness = 5.f / 2;
@@ -304,7 +384,7 @@ void test2DSDF1() {
     }
 #endif
 
-    ptr.writeOut("test2DSDF1_2_sdf.png");
+    ptr.writeOut(prefix("2.png"));
 
 #if 1 // colorize as striped gradient
     // Map quadtree to output texture
@@ -320,7 +400,7 @@ void test2DSDF1() {
             ptr.SetPixeli(x, y,  col);
         }
     }
-    ptr.writeOut("test2DSDF1_2_sdf_field.png");
+    ptr.writeOut(prefix("2_sdf_field.png"));
 #endif
 
 #if 1
@@ -369,13 +449,13 @@ void test2DSDF1() {
             ptr.SetPixeli(x, y,  col);
         }
     }
-    ptr.writeOut("test2DSDF1_2_sdf_field_real.png");
+    ptr.writeOut(prefix("2_sdf_field_real.png"));
     
     // print out value difference
     float mx = -1e9;
     PairIdx maxIdx;
     float mn = 1e9;
-    PairIdx minIdx;
+    PairIdx minIdx = {0,0};
     for (unsigned x = 0; x < image.dim1(); x++){
         for (unsigned y = 0; y < image.dim2(); y++){
             float df = distDiff.at(x, y);
@@ -420,13 +500,13 @@ void test2DSDF1() {
             ptr.SetPixeli(x, y,  col);
         }
     }
-    ptr.writeOut("test2DSDF1_2_sdf_field_diff.png");
-
-
+    ptr.writeOut(prefix("2_sdf_field_diff.png"));
 
 #endif
 }
-void test2DSDFPolygon() {
+
+TESTFUN(sdf, SDFPolygon){
+//void test2DSDFPolygon() {
     using namespace dr4;
     using namespace std;
     const int w = 256;
@@ -450,7 +530,7 @@ void test2DSDFPolygon() {
         Razz::DrawLine(ptr, blue, line.fst, line.snd);
     }
 
-    ptr.writeOut("test2DSDFPolygon_1.png");
+    ptr.writeOut(prefix("1.png"));
 
     //
     // ASDF test - use pixel coordinates for tree to simplify initial testing
@@ -479,7 +559,7 @@ void test2DSDFPolygon() {
     builder.add(fun2);
     auto quadtree = builder.build();
 
-    outputTreeDbg("treedbg2.png", quadtree);
+    outputTreeDbg(prefix("treedbg.png"), quadtree);
 
     // TODO: Visualize quadtree!
 
@@ -500,10 +580,8 @@ void test2DSDFPolygon() {
     }
 #endif
 
-    ptr.writeOut("test2DSDFPolygon_2_sdf.png");
+    ptr.writeOut(prefix("sdf.png"));
 }
-
-
 
 void proto2DRendering() {
     // p : pixel buffer
@@ -561,7 +639,8 @@ void outputGradient(dr4::GradientFloat32 grad, const std::string& name) {
 
 }
 
-void testGradient01() {
+TESTFUN(common, gradient01){
+//void testGradient01() {
     using namespace dr4;
     using namespace std;
 
@@ -579,13 +658,11 @@ void testGradient01() {
     GradientFloat32 grad4 = { { {0.0f, yellow},{0.5f, green} ,{1.f, blue }} };
     //GradientFloat32 grad4 = { { {0.0f, red},{0.5f, yellow}} };
 
-    outputGradient(grad1, "testgrad_01.png");
-    outputGradient(grad2, "testgrad_02.png");
-    outputGradient(grad3, "testgrad_03.png");
-    outputGradient(grad4, "testgrad_04.png");
+    outputGradient(grad1, prefix("grad01.png"));
+    outputGradient(grad2, prefix("grad02.png"));
+    outputGradient(grad3, prefix("grad03.png"));
+    outputGradient(grad4, prefix("grad04.png"));
 }
-
-
 
 //
 // Interpolation tests
@@ -652,14 +729,15 @@ void interpolateAndWriteBez(const std::vector<dr4::Pairf>& points, const std::st
     Analysis::TextDump(mathscript, filename);
 }
 
-void interpolateTest01() {
+TESTFUN(common, interpolate01){
+//void interpolateTest01() {
     using namespace dr4;
     using namespace std;
-    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, "plot01.nb");
-    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, "plot02.nb");
+    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("-plot01.nb"));
+    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("-plot02.nb"));
     
-    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, "plot01_bez.nb");
-    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, "plot02_bez.nb");
+    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("-plot01_bez.nb"));
+    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("-plot02_bez.nb"));
     //interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {3.f, 1.f} }, "plot02_bez.nb");
 
 #if 0
@@ -682,17 +760,17 @@ void interpolateTest01() {
 #endif
 }
 
+#define RN(fname_)(#fname_)
+
 int main()
 {
-    //testImageIO();
-    //testrand();
-    //testDrawRandDots();
-    //testDrawRandLines();
-    //testTriangles1();
-    //test2DSDF1();
-    //test2DSDFPolygon();
-    testGradient01();
-    interpolateTest01();
-    return 0;
+    using namespace std;
+    vector<string> filter = {
+        RN(gradient01),
+        RN(interpolate01)
+    };
+
+    testharness_t::run();
+    //testharness_t::run(filter);
 }
 
