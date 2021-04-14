@@ -23,7 +23,9 @@ namespace dr4 {
 		NotEnoughVertices,
 		BasisVectorsNotOrthogonal,
 		IncompatibleDimension,
-		VolumeCloseToZero
+		VolumeCloseToZero,
+		DivisionByZero,
+		NonMonotoneInX
 	};
 
 	std::string GeometryErrorToString(GeometryResult e);

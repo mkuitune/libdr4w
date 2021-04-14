@@ -23,6 +23,9 @@ std::string dr4::GeometryErrorToString(dr4::GeometryResult e)
 	case GeometryResult::IncompatibleDimension: return "GeometryError::IncompatibleDimension";
 	case GeometryResult::PointsColinear: return "GeometryError::PointsColinear";
 	case GeometryResult::VolumeCloseToZero: return "GeometryError::VolumeCloseToZero";
+	case GeometryResult::DivisionByZero: return "GeometryError::DivisionByZero";
+	case GeometryResult::NonMonotoneInX: return "GeometryError::NonMonotoneInX";
+
 	default: return "GeometryError::<Unknown value>";
 	}
 

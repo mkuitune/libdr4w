@@ -166,6 +166,7 @@
     <ClInclude Include="..\include\dr4\dr4_dimension.h" />
     <ClInclude Include="..\include\dr4\dr4_distance.h" />
     <ClInclude Include="..\include\dr4\dr4_floatingpoint.h" />
+    <ClInclude Include="..\include\dr4\dr4_geometry.h" />
     <ClInclude Include="..\include\dr4\dr4_geometryresult.h" />
     <ClInclude Include="..\include\dr4\dr4_image.h" />
     <ClInclude Include="..\include\dr4\dr4_io.h" />

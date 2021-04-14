@@ -30,6 +30,7 @@ public:
         virtual std::string name() const = 0;
 		virtual void runtest() = 0;
         std::string prefix(const std::string& post) { return name() + "-" + post; }
+        std::string errorString(const std::string& post) { return std::string("ERROR:") + name() + ":" + post; }
     };
 
     typedef std::vector<std::shared_ptr<test_t>> testset_t;
@@ -718,6 +719,7 @@ void interpolateAndWrite(const std::vector<dr4::Pairf>& points, const std::strin
     auto mathscript = Analysis::PointsAndInterpolatedToMathematica(points, interpolated);
     Analysis::TextDump(mathscript, filename);
 }
+
 void interpolateAndWriteBez(const std::vector<dr4::Pairf>& points, const std::string filename) {
 
     using namespace dr4;
@@ -729,15 +731,37 @@ void interpolateAndWriteBez(const std::vector<dr4::Pairf>& points, const std::st
     Analysis::TextDump(mathscript, filename);
 }
 
+void interpolateAndWriteBezMonotone(const std::vector<dr4::Pairf>& points, const std::string filename) {
+
+    using namespace dr4;
+    using namespace std;
+    size_t interval = 10;
+    size_t samplecount = 30;
+    auto interpolatedRes = Analysis::InterpolateDataBezierMonotone(points, interval, samplecount);
+    if (!interpolatedRes) {
+        cout << string("  Error: Can't create monotone:") + interpolatedRes.metaToString() << endl;
+        return;
+    }
+    auto interpolated = interpolatedRes.value();
+    auto mathscript = Analysis::PointsAndInterpolatedToMathematica(points, interpolated);
+    Analysis::TextDump(mathscript, filename);
+}
+
 TESTFUN(common, interpolate01){
 //void interpolateTest01() {
     using namespace dr4;
     using namespace std;
-    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("-plot01.nb"));
-    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("-plot02.nb"));
+    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("plot01.nb"));
+    interpolateAndWrite({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("plot02.nb"));
     
-    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("-plot01_bez.nb"));
-    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("-plot02_bez.nb"));
+    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("plot01_bez.nb"));
+    interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("plot02_bez.nb"));
+    
+    interpolateAndWriteBezMonotone({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f} }, prefix("plot01_bez_mon.nb"));
+    interpolateAndWriteBezMonotone({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {4.f, 5.f} }, prefix("plot02_bez_mon.nb"));
+    interpolateAndWriteBezMonotone({ {0.f, 0.f},{1.f, 0.f},{1.f, 1.f},{2.f, 1.f}, {2.f, 0.f}, {4.f, 5.f}, {5.f, 3.f}}, prefix("plot03_bez_mon.nb"));
+    cout << "  Error statement on next line is expected:" << endl;
+    interpolateAndWriteBezMonotone({ {0.f, 0.f},{1.f, 1.f},{0.99f, 0.f},{2.f, 0.f} }, prefix("plot04_bez_mon.nb")); // intentionally wrong
     //interpolateAndWriteBez({ {0.f, 0.f},{1.f, 1.f},{2.f, 0.f}, {3.f, 1.f} }, "plot02_bez.nb");
 
 #if 0

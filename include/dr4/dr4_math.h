@@ -96,6 +96,7 @@ namespace dr4 {
 		return u * u * (3.f - 2.f * u);
 	}
 
+
 #if 0
     //https://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
 	inline double fastPow(double a, double b) {

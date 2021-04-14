@@ -94,35 +94,6 @@ namespace dr4 {
 		return PiecewiseSpline2::Create(samplesOut);
 	}
 
-	PiecewiseSpline2 Interpolate2Bezier(std::vector<Pairf> points, size_t samplesPerSpan){
-		// 1. Points to bezier spline
-		// 2. eval bezier splines
-
-		auto bezierResult = SplineBezierCubic::InterpolatePoints(points);
-		if (!bezierResult)
-			return {};
-
-		auto beziers = bezierResult.value();
-
-		std::vector<Pairf> samplesOut;
-		size_t nSplines = beziers.size();
-		size_t lastPointIdx = nSplines - 1;
-		size_t lastData = points.size() - 1;
-
-		const float du = 1.0f / (samplesPerSpan - 1); // don't eval the last point except in the last spline
-
-		for (size_t i = 0; i < nSplines; i++) {
-			// don't eval the last point except in the last spline
-			size_t lastSampleIdx = (i == lastPointIdx ? samplesPerSpan : samplesPerSpan - 1);
-			float u = 0.f;
-			const auto& spline = beziers[i];
-			for (size_t j = 0; j < lastSampleIdx; j++) {
-				samplesOut.push_back(spline.eval(u));
-				u += du;
-			}
-		}
-		return PiecewiseSpline2::Create(samplesOut);
-	}
 
 	SplineBezierCubic::GeometryResultBezier SplineBezierCubic::InterpolatePoints(
 		const std::vector<Pairf>& points, std::optional<Pairf> firstDirection, std::optional<Pairf> lastDirection){
@@ -178,6 +149,65 @@ namespace dr4 {
 		}
 
 		return GeometryResultBezier::Success(res);
+	}
+
+	namespace {
+		PiecewiseSpline2 Bezier2Piecewise(const std::vector<SplineBezierCubic>& beziers, size_t samplesPerSpan) {
+			// 1. Points to bezier spline
+			// 2. eval bezier splines
+			std::vector<Pairf> samplesOut;
+			size_t nSplines = beziers.size();
+			size_t lastPointIdx = nSplines - 1;
+
+			const float du = 1.0f / (samplesPerSpan - 1); // don't eval the last point except in the last spline
+
+			for (size_t i = 0; i < nSplines; i++) {
+				// don't eval the last point except in the last spline
+				size_t lastSampleIdx = (i == lastPointIdx ? samplesPerSpan : samplesPerSpan - 1);
+				float u = 0.f;
+				const auto& spline = beziers[i];
+				for (size_t j = 0; j < lastSampleIdx; j++) {
+					samplesOut.push_back(spline.eval(u));
+					u += du;
+				}
+			}
+			return PiecewiseSpline2::Create(samplesOut);
+		}
+	}
+
+	PiecewiseSpline2 Interpolate2Bezier(std::vector<Pairf> points, size_t samplesPerSpan){
+		// 1. Points to bezier spline
+		// 2. eval bezier splines
+
+		auto bezierResult = SplineBezierCubic::InterpolatePoints(points);
+		if (!bezierResult)
+			return {};
+
+		auto beziers = bezierResult.value();
+
+		return Bezier2Piecewise(beziers, samplesPerSpan);
+	}
+
+	Piecewise2MonotoneResult Interpolate2BezierMonotone(std::vector<Pairf> points, size_t samplesPerSpan)
+	{
+		// 1. Points to bezier spline
+		// 2. eval bezier splines
+
+		auto bezierResult = SplineBezierCubic::InterpolatePoints(points);
+		if (!bezierResult)
+			return Piecewise2MonotoneResult::Error(bezierResult.meta());
+
+		std::vector<SplineBezierCubic> beziersNonVerified = bezierResult.value();
+		std::vector<SplineBezierCubic> beziers;
+		for (const auto& b : beziersNonVerified) {
+			auto monotone = b.forceXMonotonicity();
+			if (!monotone)
+				return Piecewise2MonotoneResult::Error(monotone.meta());
+
+			beziers.push_back(monotone.value());
+		}
+
+		return Bezier2Piecewise(beziers, samplesPerSpan);
 	}
 }
 
