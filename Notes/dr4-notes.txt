@@ -6,3 +6,7 @@
 3/2/21
 ------
 * Add nlohmann json library libdr4w\external
+
+4/16/21
+-------
+* Add externa/google/snappy-1.18
