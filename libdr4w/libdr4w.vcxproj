@@ -97,7 +97,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\snappy-1.1.8.build\win32-x64-142\$(Configuration)\include\;$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -114,7 +114,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\snappy-1.1.8.build\win32-x64-142\$(Configuration)\include\;$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -131,7 +131,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\snappy-1.1.8.build\win32-x64-142\$(Configuration)\include\;$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -148,7 +148,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\snappy-1.1.8.build\win32-x64-142\$(Configuration)\include\;$(SolutionDir)external;$(SolutionDir)include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -163,6 +163,7 @@
     <ClInclude Include="..\include\dr4\dr4_array2d.h" />
     <ClInclude Include="..\include\dr4\dr4_camera.h" />
     <ClInclude Include="..\include\dr4\dr4_color.h" />
+    <ClInclude Include="..\include\dr4\dr4_compress.h" />
     <ClInclude Include="..\include\dr4\dr4_dimension.h" />
     <ClInclude Include="..\include\dr4\dr4_distance.h" />
     <ClInclude Include="..\include\dr4\dr4_floatingpoint.h" />
@@ -195,6 +196,7 @@
   <ItemGroup>
     <ClCompile Include="dr4_camera.cpp" />
     <ClCompile Include="dr4_color.cpp" />
+    <ClCompile Include="dr4_compress.cpp" />
     <ClCompile Include="dr4_distance.cpp" />
     <ClCompile Include="dr4_geometryresult.cpp" />
     <ClCompile Include="dr4_image.cpp" />
