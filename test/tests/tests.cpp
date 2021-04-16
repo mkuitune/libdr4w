@@ -178,6 +178,7 @@ TESTFUN(scene, scenetest01){
 
     Scene2D scene = GetTestScene01();
     FrameTasks tasks;
+
     state.rasterizer->draw2D(state.camera, scene, tasks);
     state.executor.runBlock(tasks.tasks);
     state.rasterizer->applyResult(tasks);
@@ -790,11 +791,12 @@ int main()
 {
     using namespace std;
     vector<string> filter = {
-        RN(gradient01),
-        RN(interpolate01)
+        //RN(gradient01),
+        //RN(interpolate01)
+        RN(scenetest01)
     };
 
-    testharness_t::run();
-    //testharness_t::run(filter);
+    //testharness_t::run();
+    testharness_t::run(filter);
 }
 
