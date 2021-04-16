@@ -164,6 +164,7 @@
     <ClInclude Include="..\include\dr4\dr4_camera.h" />
     <ClInclude Include="..\include\dr4\dr4_color.h" />
     <ClInclude Include="..\include\dr4\dr4_compress.h" />
+    <ClInclude Include="..\include\dr4\dr4_compressible_trimesh.h" />
     <ClInclude Include="..\include\dr4\dr4_dimension.h" />
     <ClInclude Include="..\include\dr4\dr4_distance.h" />
     <ClInclude Include="..\include\dr4\dr4_floatingpoint.h" />
