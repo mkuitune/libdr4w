@@ -98,12 +98,12 @@ namespace dr4 {
 				// todo maybe have a separate drawtask class for debug output
 				auto sceneToRaster = m_config.sceneToRaster();
 				if (g.content == Content2D::Fill) {
-					auto fill = m_scene.m_colorFills[g.idx];
+					auto fill = m_scene.colorFills[g.idx];
 					m_painter.fill(fill.colorFill);
 				}
 				else if (g.content == Content2D::Lines) {
-					auto lines = m_scene.m_lines[g.idx];
-					auto material = m_scene.m_materials[lines.material];
+					auto lines = m_scene.lines[g.idx];
+					auto material = m_scene.materials[lines.material];
 					for (auto line : lines.lines) {
 						// line coords in scene coordsystem. Rasterize in tile pixel coordinates
 						// transform coords (from->to) scene(s) -> framebuffer(p) ->tile(p)
@@ -117,7 +117,7 @@ namespace dr4 {
 			virtual void doTask() override {
 				// render scene
 				// render layers front to back
-				for (auto layer : m_scene.m_layers) {
+				for (auto layer : m_scene.layers) {
 					for (auto g : layer.graphics) {
 						//drawGraphics(g, layer.blend);
 						drawGraphicsLinesOnlyDBG(g, layer.blend);

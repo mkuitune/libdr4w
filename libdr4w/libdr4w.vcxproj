@@ -165,6 +165,7 @@
     <ClInclude Include="..\include\dr4\dr4_color.h" />
     <ClInclude Include="..\include\dr4\dr4_compress.h" />
     <ClInclude Include="..\include\dr4\dr4_compressible_trimesh.h" />
+    <ClInclude Include="..\include\dr4\dr4_core_types.h" />
     <ClInclude Include="..\include\dr4\dr4_dimension.h" />
     <ClInclude Include="..\include\dr4\dr4_distance.h" />
     <ClInclude Include="..\include\dr4\dr4_floatingpoint.h" />
@@ -172,6 +173,7 @@
     <ClInclude Include="..\include\dr4\dr4_geometryresult.h" />
     <ClInclude Include="..\include\dr4\dr4_image.h" />
     <ClInclude Include="..\include\dr4\dr4_io.h" />
+    <ClInclude Include="..\include\dr4\dr4_json_parser.h" />
     <ClInclude Include="..\include\dr4\dr4_math.h" />
     <ClInclude Include="..\include\dr4\dr4_metadata.h" />
     <ClInclude Include="..\include\dr4\dr4_quadtree.h" />
@@ -202,6 +204,7 @@
     <ClCompile Include="dr4_geometryresult.cpp" />
     <ClCompile Include="dr4_image.cpp" />
     <ClCompile Include="dr4_io.cpp" />
+    <ClCompile Include="dr4_json_parser.cpp" />
     <ClCompile Include="dr4_math.cpp" />
     <ClCompile Include="dr4_quadtree.cpp" />
     <ClCompile Include="dr4_rasterizer.cpp" />

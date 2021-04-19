@@ -7,6 +7,7 @@
 #include <dr4/dr4_tuples.h>
 
 namespace dr4 {
+	// todo define this using flatbuffers, then just compress/decompress
 	class CompressibleTrimesh {
 		std::vector<Tripletf> vertices; //each 
 

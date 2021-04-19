@@ -21,14 +21,14 @@ namespace dr4 {
 		void append(Line2D line) { lines.push_back(line); }
 	};
 
+	enum class BlendType { Default };
 	struct Blend {
-		enum class Type { Default };
-		Type type;
+		BlendType type;
 		Normalized<float> opacity;
 
 		static Blend Default() {
 			Blend b;
-			b.type = Type::Default;
+			b.type = BlendType::Default;
 			b.opacity = 1.0;
 			return b;
 		}
@@ -38,10 +38,14 @@ namespace dr4 {
 		float linewidth = 1.0;
 		RGBAFloat32 colorFill;
 		RGBAFloat32 colorLine;
+
+		static Material2D CreateDefault() { return {1.0f, RGBAFloat32::White(), RGBAFloat32::Black()}; }
 	};
 
 	struct ColorFill {
 		RGBAFloat32 colorFill;
+		
+		static ColorFill CreateDefault() { return {RGBAFloat32::Red()}; }
 	};
 
 	enum class Content2D { Fill, Lines };
@@ -69,14 +73,20 @@ namespace dr4 {
 
 	class Scene2D {
 	public:
-		std::vector<Line2DCollection> m_lines;
-		std::vector<ColorFill> m_colorFills;
-		std::vector<Layer> m_layers;
+
+		// todo should there be some bounds or specific origin (against which all the data id)
+		// another option is to define a coordsys only on insert, otherwise everything is in world coordinates
+
+		std::vector<Line2DCollection> lines;
+		std::vector<ColorFill> colorFills;
+		std::vector<Layer> layers;
 		// todo add ordering of layers ... somewhere
-		std::vector<Material2D> m_materials;
+		std::vector<Material2D> materials;
 
 		ScalarPresentation scalarPresentation = { 1.0f, ScalarPresentation::Unit::Cm };
+
 	};
+
 
 	class Scene2DBuilder {
 		Scene2D m_scene;
@@ -94,33 +104,33 @@ namespace dr4 {
 		}
 
 		size_t addMaterial(Material2D mat2d) {
-			m_scene.m_materials.push_back(mat2d);
-			return m_scene.m_materials.size() - 1;
+			m_scene.materials.push_back(mat2d);
+			return m_scene.materials.size() - 1;
 		}
 
 		size_t addLayer() {
 			Layer lr;
 			lr.blend = Blend::Default();
-			m_scene.m_layers.push_back(lr);
-			return lastOf(m_scene.m_layers);
+			m_scene.layers.push_back(lr);
+			return lastOf(m_scene.layers);
 		}
 
 		void add(size_t layer, const Line2DCollection& lines) {
-			m_scene.m_lines.push_back(lines);
-			auto idx = lastOf(m_scene.m_lines);
+			m_scene.lines.push_back(lines);
+			auto idx = lastOf(m_scene.lines);
 			Graphics2DElement elem;
 			elem.content = Content2D::Lines;
 			elem.idx = idx;
-			m_scene.m_layers[layer].graphics.push_back(elem);
+			m_scene.layers[layer].graphics.push_back(elem);
 		}
 
 		void add(size_t layer, ColorFill fill) {
-			m_scene.m_colorFills.push_back(fill);
-			auto idx = lastOf(m_scene.m_colorFills);
+			m_scene.colorFills.push_back(fill);
+			auto idx = lastOf(m_scene.colorFills);
 			Graphics2DElement elem;
 			elem.content = Content2D::Fill;
 			elem.idx = idx;
-			m_scene.m_layers[layer].graphics.push_back(elem);
+			m_scene.layers[layer].graphics.push_back(elem);
 		}
 
 		Scene2D build() {
