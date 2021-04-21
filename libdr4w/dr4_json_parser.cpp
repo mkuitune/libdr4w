@@ -1,6 +1,8 @@
 #include <dr4/dr4_json_parser.h>
-
+#include <memory>
 #include <nlohmann/json.hpp>
+
+#include <dr4/dr4_compress.h>
 
 namespace dr4 {
 
@@ -94,7 +96,43 @@ public:
         }
         return res;
     }
+
+    bool readFromCompressed(const std::string& comprs) {
+		size_t len;
+		std::vector<std::uint8_t> v_cbor;
+		if (!UncompressLen(comprs, len))
+			return false;
+
+		v_cbor.resize(len);
+		if (!UncompressBytes(comprs, (char*)&v_cbor[0]))
+			return false;
+
+        json = json::from_cbor(v_cbor);
+        return true;
+	}
+
+	// write to cbor and compress
+	std::string compress() const {
+		std::vector<std::uint8_t> v_cbor = json::to_cbor(json);
+		std::string buf;
+		const char* fst = (const char*)&v_cbor[0];
+		Compress(fst, v_cbor.size(), buf);
+		return buf;
+	}
+
 };
+
+std::string dr4::Json::compress() const {
+    return json->compress();
+}
+
+dr4::Json dr4::Json::Deflate(const std::string& comprs) {
+    std::shared_ptr<JsonImpl> jsonimpl = std::make_shared<JsonImpl>();
+    if (jsonimpl->readFromCompressed(comprs))
+        return { jsonimpl };
+
+    return Json();
+}
 
 dr4::JsonResult dr4::CreateJsonFromString(const std::string& str)
 {
@@ -110,6 +148,8 @@ dr4::JsonResult dr4::CreateJsonFromString(const std::string& str)
 
 dr4::Json dr4::CreateJson()
 {
+    Json j;
+    j.json = std::make_shared<JsonImpl>();
 	return Json();
 }
 

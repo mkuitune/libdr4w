@@ -16,6 +16,14 @@ namespace dr4 {
 	class Json {
 	public:
 		std::shared_ptr<JsonImpl> json;
+		bool isValid() {
+			if (json)
+				return true;
+			else
+				return false;
+		}
+		std::string compress() const;
+		static Json Deflate(const std::string& compressed);
 	};
 
 	typedef TypedResult<JsonParseResult, Json> JsonResult;
