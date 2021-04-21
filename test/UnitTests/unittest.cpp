@@ -2,7 +2,10 @@
 
 #include <dr4/dr4_distance.h>
 #include <dr4/dr4_floatingpoint.h>
+
 #include <dr4/dr4_handlemanager.h>
+
+#include <string>
 
 TEST(DR4Test, TestDistanceLine) {
 
@@ -90,7 +93,38 @@ TEST(DR4Test, TestLineDistanceDistance) {
 TEST(DR4Test, TestHandles) {
 
 	using namespace dr4;
-	enum class localtypes_t {type_string = 1};
-	HandleBuffer<string> stringBuffer(static_cast<int>(localtypes_t::type_string), 256);
+	using namespace std;
+	enum class localtypes_t : int {type_string = 1};
+	const int strtype = (int)localtypes_t::type_string;
+	//HandleBuffer<string, static_cast<int>(localtype_t::type_string)> stringBuffer(256);
+	HandleBuffer<string> stringBuffer(4);
+
+	auto h = stringBuffer.create("Hello");
+	map<string, decltype(h)> ref;
+	ref["Hello"] = h;
+
+	auto mkword = [&](const string& wrd) {
+		auto hndl = stringBuffer.create(wrd);
+		ref[wrd] = hndl;
+	};
+
+	mkword("a");
+	mkword("b");
+	mkword("c");
+	mkword("d");
+	mkword("foo foo foo");
+	mkword("Asinine rabbit");
+	mkword("fancy bear");
+	
+	stringBuffer.release(ref["c"]);
+	ref.erase("c");
+	
+	mkword("hello");
+
+	for (auto r : ref) {
+		auto s = stringBuffer.get(r.second);
+		if(s)
+			ASSERT_EQ(*s, r.first);
+	}
 
 }

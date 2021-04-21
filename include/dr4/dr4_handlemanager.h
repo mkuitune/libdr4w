@@ -7,45 +7,26 @@
 namespace dr4 {
 	using namespace std;
 
-
-	template<class T, int TYPEID>
+	template<class T>
 	class HandleBuffer {
 	public:
 		static const uint16_t TAG_UNUSED = 0;
 		static const uint16_t TAG_TO_BE_COLLECTED = 1;
 	public:
 		struct Handle {
-			static const uint64_t INVALID = 0xffffffff;
-
 			uint32_t index : 32;  // index to buffer - 4.2G object indices
-			uint16_t typeId : 10; //  type
 			uint16_t tag : 16;  // pseudo-unique marker to make sure that the entity in index is the same as requested
-			uint8_t meta : 6;    //  usable for domain specific stuff if needed
-
-			struct TagGenerator {
-				uint16_t seed = 2;
-				// tag 0 means 'unused'
-				// tag 1 means 'marked for collection'
-				uint16_t next() {
-					uint16_t v = seed++;
-					if (v == TAG_UNUSED) {
-						seed = TAG_TO_BE_COLLECTED + 1;
-						v = seed++;
-					}
-					return v;
-				}
-			};
+			uint16_t meta : 16;    //  usable for domain specific stuff if needed
 
 			uint16_t getTag() const { return tag; }
 			uint8_t getMeta() const { return meta; }
-			uint16_t getType() const { return typeId; }
 			uint32_t getIndex() const { return index; }
 
 			void setMeta(uint8_t m) { meta = m; }
 
 			bool equal(const Handle& h) const {
 				// meta reserved for domain application specific use
-				return index == h.index && typeId == h.typeId && tag == h.tag;
+				return index == h.index && tag == h.tag;
 			}
 
 			bool equal(uint64_t i)const {
@@ -61,34 +42,42 @@ namespace dr4 {
 				return *((uint64_t*)(this));
 			}
 
-			bool isInvalid() {
-				return equal(INVALID);
-			}
-
 			static Handle fromUint(uint64_t h) {
 				return *((Handle*)(&h));
 			}
 
-			static Handle Create(uint16_t type, uint16_t tag, uint32_t index) {
+			static Handle Create(uint16_t tag, uint32_t index) {
 				Handle h;
 				h.index = index;
-				h.typeId = type;
 				h.tag = tag;
 				h.meta = 0;
+				return h;
 			}
 
-			static Handle Create(uint16_t type, uint16_t tag, uint32_t index, uint8_t meta) {
+			static Handle Create(uint16_t tag, uint32_t index, uint8_t meta) {
 				Handle h;
 				h.index = index;
-				h.typeId = type;
 				h.tag = tag;
 				h.meta = meta;
+				return h;
 			}
 
 			static Handle Invalid() {
-				return fromUint(INVALID);
+				return { 0xffffffff,TAG_UNUSED,0};
 			}
 
+		};
+
+		struct TagGenerator {
+			uint16_t seed = 2;
+			uint16_t next() {
+				uint16_t v = seed++;
+				if (v == TAG_UNUSED) {
+					seed = TAG_TO_BE_COLLECTED + 1;
+					v = seed++;
+				}
+				return v;
+			}
 		};
 	private:
 		typedef uint16_t tag_t;
@@ -97,98 +86,101 @@ namespace dr4 {
 			T data;
 			Handle handle;
 
-			//bool tagsMatch(Handle h) {
-			//	return handle.tag == h.tag;
-			//}
+			bool hasSameHandle(Handle h) const { return handle.equal(h); }
 
-			bool hasSameHandle(Handle h) const{return handle.e}
-
-			bool markForCollection() {
-				tag = TAG_TO_BE_COLLECTED;// this invalidates the handle
+			void markForCollection() {
+				handle = Handle::Invalid();
+				handle.tag = TAG_TO_BE_COLLECTED;// this invalidates the handle
 			}
 
-			bool isMarkedForCollection() const{
+			bool isMarkedForCollection() const {
 				return tag == TAG_TO_BE_COLLECTED;
 			}
 
 			void callDeallocator() {
 				data.~T();
-				tag = TAG_UNUSED;
+				handle = Handle::Invalid();
 			}
 
 			template<typename ... Args>
-			void callConstructor() {
-				void* addr =(void*) (&data);
+			void callConstructor(Args&&...args) {
+				void* addr = (void*)(&data);
 				new(addr)T(std::forward<Args>(args)...);
 			}
 
 			void callConstructor() {
-				void* addr =(void*) (&data);
+				void* addr = (void*)(&data);
 				new(addr)T();
 			}
 		};
 
 
 		struct storage_t {
-			storage_type_t* data = 0;
-			const uint16_t typeInfo;
+			storage_type_t* data;
 			const size_t size = 0;
 			const uint32_t idxOffset;
-			size_t lastUnused;
+			uint32_t lastUnused;
 
-			std::list<size_t> freed;
+			std::list<uint32_t> freed;
 
-			Handle::TagGenerator m_tags;
+			TagGenerator m_tags;
 
-			storage_t(uint16_t type, uint32_t bufferSize, uint32_t offset)
-				: typeInfo(type),size(bufferSize), idxOffset(offset), lastUnused(0) {
-				data = malloc(sizeof(storage_type_t) * size);
+			storage_t(uint32_t bufferSize, uint32_t offset)
+				: size(bufferSize), idxOffset(offset), lastUnused(0) {
+				data = (storage_type_t *)malloc(sizeof(storage_type_t) * size);
+
+				if (data == nullptr)
+					return;
+
 				memset(data, 0, sizeof(storage_type_t) * size);
+				for (storage_type_t* iter = data; iter != data + size; iter++) {
+					iter->handle = Handle::Invalid();
+				}
 			}
-		
+
 			// no deconstructor, the idea is that the move operation will deal with this
-			void freeAll(){
+			void freeAll() {
 				if (!data)
 					return;
 
 				storage_type_t* last = data + size;
-				for (storage_type_t* s = data; fst != last; fst++) {
-					if (s->tag != 0)
+				for (storage_type_t* s = data; s != last; s++) {
+					if (s->handle.tag != TAG_UNUSED)
 						s->callDeallocator();
 				}
 				free(data);
 			}
 
 			bool isFull() const {
-				lastUnused == size && freed.empty();
+				return lastUnused >= size && freed.empty();
 			}
 
-			size_t actualIndex(Handle h) const{
+			uint32_t actualIndex(Handle h) const {
 				return h.index - idxOffset;
-
 			}
 
-			storage_type_t* getStorage(Handle h) {
-				uint32_t fullIdx = h.index;
+			bool isInRange(Handle h) const {
+				if (h.index < idxOffset)
+					return false;
+				uint32_t localStorageIndex = actualIndex(h);
+				return localStorageIndex < size;
+			}
 
-				if (fullIdx < idxOffset)
-					return nullptr;
+			storage_type_t* getSlot(Handle h) {
+				if (!isInRange(h))
+					return false;
 
-				size_t actual = fullIdx - idxOffset;
-
-				if (actual > data.size())
-					return nullptr;
-
+				size_t actual = actualIndex(h);
 				storage_type_t* stored = &data[actual];
 
-				if (!stored->tagsMatch(h))
+				if (!stored->hasSameHandle(h))
 					return nullptr;
 
-				return &stored;
+				return stored;
 			}
 
 			T* get(Handle h) {
-				storate_type_t* stored = getStorage(h);
+				storate_type_t* stored = getSlot(h);
 				if (stored)
 					return &stored->data;
 				else
@@ -196,17 +188,16 @@ namespace dr4 {
 			}
 
 			bool deallocate(Handle h) {
-				auto s = getStorage(h);
-				if (!s) 
+				auto s = getSlot(h);
+				if (!s)
 					return false;
-
 				freed.push_back(actualIndex(h));
-				s->deallocate();
+				s->callDeallocator();
 				return true;
 			}
 
 			bool markForCollection(Handle h) {
-				auto s = getStorage(h);
+				auto s = getSlot(h);
 				if (!s)
 					return false;
 
@@ -223,12 +214,13 @@ namespace dr4 {
 				}
 			}
 
-			storage_type_t* storeNextEmpty(uint32_t& fullIdx) {
+			// does not call constructor, need to call that in callsite
+			storage_type_t* allocateStorage(Handle& handleOut) {
 				if (isFull())
 					return nullptr;
 
 				uint32_t idx;
-				if (!freed.empty()){
+				if (!freed.empty()) {
 					idx = freed.back();
 					freed.pop_back();
 				}
@@ -236,33 +228,18 @@ namespace dr4 {
 					idx = lastUnused++;
 				}
 
-				fullIdx = idxOffset + idx;
-				return &data[idx];
-			}
-		
-			// call constructor in calling function
-			storage_type_t* allocNew(Handle& out) {
-				uint32_t fullIdx;
-				auto stored = storeNextEmpty(fullIdx);
-				if (!stored) {
-					return nullptr;
-				}
-				out = Handle::Create(typeInfo, stored->tag, fullIdx);
-				//stored->callConstructor();
-				//Handle h = Handle::Create(typeInfo, stored->tag, fullIdx);
+				uint32_t fullIdx = idxOffset + idx;
+				handleOut = Handle::Create(m_tags.next(), fullIdx);
+				
+				storage_type_t* stored = &data[idx];
+				stored->handle = handleOut;
+
 				return stored;
 			}
 
-
-			//storage_t* CreateNew(size_t size, uint32_t offset) {
-			//	storage_t* ptr = new storage_t(size, offset);
-			//	return ptr;
-			//}
-
 		}; // Storage_t (single chunk) ends
 
-		const uint16_t m_type;// give unique type-id on generation
-		const size_t m_bufsize;
+		const uint32_t m_buffersize;
 
 		std::vector<storage_t> m_storage;
 
@@ -275,86 +252,108 @@ namespace dr4 {
 		}
 
 		bool recordFailedAccess() {
-			m_nFailedAccessses++;
+			m_nFailedAccesses++;
 			return false;
 		}
 
 		storage_type_t* getFreeSlot(Handle& h) {
-			
+			storage_type_t* stor;
 			for (auto& s : m_storage) {
-				if (!s.isFull()) {
-					return s.allocNew(h);
-				}
+				stor = s.allocateStorage(h);
+				if (stor != nullptr)
+					return stor;
 			}
-			size_t newOffset = m_storage.size() * m_bufferSize;
-			m_storage.emplace_back(type, m_bufferSize, newOffset);
+			uint32_t newOffset = (uint32_t) m_storage.size() * m_buffersize;
+			m_storage.emplace_back(m_buffersize, newOffset);
 			auto& s = m_storage.back();
-			return s.allocNew(h);
+
+			return s.allocateStorage(h);
 		}
 
-		T* getStoredForHandle(Handle h) {
-			uint32_t idx = h.index / m_bufferSize;
-			if (idx = > m_storage.size())
+		storage_t* getStorageOfHandle(Handle h) {
+			uint32_t idx = h.index / m_buffersize;
+			if (idx >= m_storage.size())
 				return nullptr;
-			return	m_storage[idx].get(h);
+			return	&m_storage[idx];
+		}
+
+		storage_type_t* getSlotForHandle(Handle h) {
+			auto storage = getStorageOfHandle(h);
+			if (!storage)
+				return nullptr;
+			return storage->getSlot(h);
+		}
+
+		T* getStoredTypeForHandle(Handle h) {
+			auto slot = getSlotForHandle(h);
+			if (!slot) {
+				return nullptr;
+			}
+			return &slot->data;
 		}
 
 	public:
-		HandleBuffer(uint16_t type, size_t bufsize) :m_type(type), m_bufsize(bufsize) {
-			m_storage.push_back(storage_t::Create(m_bufsize));
+
+		HandleBuffer(uint32_t bufsize) :m_buffersize(bufsize) {
+			m_storage.emplace_back(m_buffersize, (uint32_t)0);
 		}
+
 		~HandleBuffer() {
 			for (auto& stor : m_storage) {
 				stor.freeAll();
 			}
 		}
-// TODO
-		Handle push(const T& value) {
-			Handle h;
-			T* slot;
-			getFreeSlot(h, &slot);
-			*slot = value;
-			return h;
-		}
-
+		
 		Handle create() {
 			Handle h;
-			T* slot;
-			getFreeSlot(h, &slot);
-			*slot = value;
-			new(*slot) T();
+			storage_type_t* storage = getFreeSlot(h);
+			storage->callConstructor();
 			return h;
 		}
 
-		Handle push(T&& value) {
+#if 0// TODO REMOVE or figure out way to parametrize usage of deallocator
+		// does not call constructor
+		Handle createPOD() {
 			Handle h;
-			T* slot;
-			getFreeSlot(h, &slot);
-			new(*slot) T(std::move(value));
+			storage_type_t* storage = getFreeSlot(h);
+			return h;
+		}
+#endif
+		
+		template<typename ... Args>
+		Handle create(Args&&...args)  {
+			Handle h;
+			storage_type_t* storage = getFreeSlot(h);
+			storage->callConstructor(std::forward<Args>(args)...);
 			return h;
 		}
 
-		bool isValid(Handle& h) {
-			if (h.typeId != m_type)
-				return false;
+		T* get(Handle h) {
+			return getStoredTypeForHandle(h);
 		}
 
-		bool release(Handle& h) {
-			storage_type_t* stored = getStoredForIndex(h.index);
-			if (!stored) {
-				return recordFailedRelease();
-			}
+		bool release(Handle h) {
+			storage_t* storage = getStorageOfHandle(h);
 
-			if (!storageIsForHandle(*stored, h)) {
-				return recordFailedRelease();
-			}
+			if (!storage) 
+				return recordFailedAccess();
 
-			stored->first = 0; // reset tag
-			stored->second->~T(); // destructor
+			if(!storage->deallocate(h))
+				return recordFailedRelease();
 
 			return true;
 		}
 
+		bool markForCollection(Handle& h) {
+			storage_t* storage = getStorageOfHandle(h);
 
+			if (!storage)
+				return recordFailedAccess();
+
+			if(!storage->markForCollection(h))
+				return recordFailedRelease();
+
+			return true;
+		}
 	};
 }
