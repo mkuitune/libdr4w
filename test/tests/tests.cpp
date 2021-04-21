@@ -18,6 +18,7 @@
 #include <dr4/dr4_span2f.h>
 #include <dr4/dr4_analysis.h>
 #include <dr4/dr4_timer.h>
+#include <dr4/dr4_handlemanager.h>
 
 using namespace std;
 
@@ -785,6 +786,45 @@ TESTFUN(common, interpolate01){
 #endif
 }
 
+namespace dr4 {
+#define DECL_HANDLE_STORAGE(type_param_, local_name_)\
+    HandleBuffer<type_param_> local_name_;\
+    type_param_* local_name_##Get(HandleBuffer<type_param_>::Handle h){ return local_name_.get(h);} \
+    bool local_name_##Delete(HandleBuffer<type_param_>::Handle h){ return local_name_.release(h);} \
+    HandleBuffer<type_param_>::Handle local_name_##Create(){return local_name_.create();} \
+	template<typename ... Args> \
+	HandleBuffer<type_param_>::Handle local_name_##Create(Args&&...args)  { return local_name_.create(std::forward<Args>(args)...);}
+#define DECL_HANDLE_STORAGE_CONSTRUC(local_name_, buf_size_) local_name_(buf_size_)
+
+
+    struct testhandlemanager_t {
+        DECL_HANDLE_STORAGE(std::string, genericNames)
+        DECL_HANDLE_STORAGE(dr4::Scene2D, scenes2D)
+
+        testhandlemanager_t():
+            DECL_HANDLE_STORAGE_CONSTRUC(genericNames, 256) ,
+            DECL_HANDLE_STORAGE_CONSTRUC(scenes2D, 32) 
+        {}
+    };
+}
+
+TESTFUN(common, handlebuffertest) {
+    using namespace dr4;
+    using namespace std;
+
+    testhandlemanager_t man;
+
+    auto hscen = man.scenes2DCreate();
+    auto hscen2 = man.scenes2DCreate();
+    auto hscen3 = man.scenes2DCreate();
+    man.scenes2DDelete(hscen2);
+    auto scen = man.scenes2DGet(hscen3);
+    auto hstr = man.genericNamesCreate("foo foo foo");
+    auto str = man.genericNamesGet(hstr);
+
+    return;
+}
+
 
 
 #define RN(fname_)(#fname_)
@@ -795,7 +835,8 @@ int main()
     vector<string> filter = {
         //RN(gradient01),
         //RN(interpolate01)
-        RN(scenetest01)
+        RN(scenetest01),
+        RN(handlebuffertest)
     };
 
     //testharness_t::run();

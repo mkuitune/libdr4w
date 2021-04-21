@@ -119,6 +119,9 @@ TEST(DR4Test, TestHandles) {
 	stringBuffer.release(ref["c"]);
 	ref.erase("c");
 	
+	std::string asString("something something");
+	mkword(asString);
+	
 	mkword("hello");
 
 	for (auto r : ref) {

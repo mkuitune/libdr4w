@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <stdint.h>
+#include <mutex>
 
 namespace dr4 {
 	using namespace std;
@@ -94,11 +95,12 @@ namespace dr4 {
 			}
 
 			bool isMarkedForCollection() const {
-				return tag == TAG_TO_BE_COLLECTED;
+				return handle.tag == TAG_TO_BE_COLLECTED;
 			}
 
 			void callDeallocator() {
 				data.~T();
+				memset(&data, 0, sizeof(data));
 				handle = Handle::Invalid();
 			}
 
@@ -116,7 +118,7 @@ namespace dr4 {
 
 
 		struct storage_t {
-			storage_type_t* data;
+			storage_type_t* databuffer;
 			const size_t size = 0;
 			const uint32_t idxOffset;
 			uint32_t lastUnused;
@@ -127,28 +129,28 @@ namespace dr4 {
 
 			storage_t(uint32_t bufferSize, uint32_t offset)
 				: size(bufferSize), idxOffset(offset), lastUnused(0) {
-				data = (storage_type_t *)malloc(sizeof(storage_type_t) * size);
+				 databuffer = (storage_type_t *)malloc(sizeof(storage_type_t) * size);
 
-				if (data == nullptr)
+				if (databuffer == nullptr)
 					return;
 
-				memset(data, 0, sizeof(storage_type_t) * size);
-				for (storage_type_t* iter = data; iter != data + size; iter++) {
+				memset(databuffer, 0, sizeof(storage_type_t) * size);
+				for (storage_type_t* iter = databuffer; iter != databuffer + size; iter++) {
 					iter->handle = Handle::Invalid();
 				}
 			}
 
 			// no deconstructor, the idea is that the move operation will deal with this
 			void freeAll() {
-				if (!data)
+				if (!databuffer)
 					return;
 
-				storage_type_t* last = data + size;
-				for (storage_type_t* s = data; s != last; s++) {
+				storage_type_t* last = databuffer + size;
+				for (storage_type_t* s = databuffer; s != last; s++) {
 					if (s->handle.tag != TAG_UNUSED)
 						s->callDeallocator();
 				}
-				free(data);
+				free(databuffer);
 			}
 
 			bool isFull() const {
@@ -168,10 +170,10 @@ namespace dr4 {
 
 			storage_type_t* getSlot(Handle h) {
 				if (!isInRange(h))
-					return false;
+					return nullptr;
 
 				size_t actual = actualIndex(h);
-				storage_type_t* stored = &data[actual];
+				storage_type_t* stored = databuffer + actual;
 
 				if (!stored->hasSameHandle(h))
 					return nullptr;
@@ -180,7 +182,7 @@ namespace dr4 {
 			}
 
 			T* get(Handle h) {
-				storate_type_t* stored = getSlot(h);
+				storage_type_t* stored = getSlot(h);
 				if (stored)
 					return &stored->data;
 				else
@@ -207,9 +209,9 @@ namespace dr4 {
 
 			void collect() {
 				for (size_t i = 0; i < size; i++) {
-					if (data[i].isMarkedForColletion()) {
-						data[i].callDeallocator();
-						freed.push_back(i) :
+					if (databuffer[i].isMarkedForColletion()) {
+						databuffer[i].callDeallocator();
+						freed.push_back(i);
 					}
 				}
 			}
@@ -231,7 +233,7 @@ namespace dr4 {
 				uint32_t fullIdx = idxOffset + idx;
 				handleOut = Handle::Create(m_tags.next(), fullIdx);
 				
-				storage_type_t* stored = &data[idx];
+				storage_type_t* stored = databuffer + idx;
 				stored->handle = handleOut;
 
 				return stored;
@@ -246,6 +248,8 @@ namespace dr4 {
 		uint64_t m_nFailedReleased = 0;
 		uint64_t m_nFailedAccesses = 0;
 
+		std::mutex m_storage_mutex;
+
 		bool recordFailedRelease() {
 			m_nFailedReleased++;
 			return false;
@@ -257,6 +261,7 @@ namespace dr4 {
 		}
 
 		storage_type_t* getFreeSlot(Handle& h) {
+			std::lock_guard<std::mutex> guard(m_storage_mutex);
 			storage_type_t* stor;
 			for (auto& s : m_storage) {
 				stor = s.allocateStorage(h);
@@ -271,6 +276,7 @@ namespace dr4 {
 		}
 
 		storage_t* getStorageOfHandle(Handle h) {
+			std::lock_guard<std::mutex> guard(m_storage_mutex);
 			uint32_t idx = h.index / m_buffersize;
 			if (idx >= m_storage.size())
 				return nullptr;
@@ -295,6 +301,7 @@ namespace dr4 {
 	public:
 
 		HandleBuffer(uint32_t bufsize) :m_buffersize(bufsize) {
+			m_storage.reserve(32);
 			m_storage.emplace_back(m_buffersize, (uint32_t)0);
 		}
 
@@ -331,6 +338,12 @@ namespace dr4 {
 		T* get(Handle h) {
 			return getStoredTypeForHandle(h);
 		}
+
+		// TODO Handle release, marking for collection and collection from
+		// single thread. Store in managing thread a set of pinned handles.
+		// client thread may issue 'please delete' request, that the managing thread
+		// then compares to the pinned handles and issues it or not
+		// Prefer deletes only from master thread
 
 		bool release(Handle h) {
 			storage_t* storage = getStorageOfHandle(h);
