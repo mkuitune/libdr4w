@@ -785,6 +785,8 @@ TESTFUN(common, interpolate01){
 #endif
 }
 
+
+
 #define RN(fname_)(#fname_)
 
 int main()

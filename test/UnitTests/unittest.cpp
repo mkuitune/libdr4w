@@ -2,6 +2,7 @@
 
 #include <dr4/dr4_distance.h>
 #include <dr4/dr4_floatingpoint.h>
+#include <dr4/dr4_handlemanager.h>
 
 TEST(DR4Test, TestDistanceLine) {
 
@@ -84,4 +85,12 @@ TEST(DR4Test, TestLineDistanceDistance) {
 	
 	float distOutFar = lineOblique.signedDistance({ -2.f, 2.0f });
 	EXPECT_FLOAT_EQ(distOutFar, -sqrtf(2.0f));
+}
+
+TEST(DR4Test, TestHandles) {
+
+	using namespace dr4;
+	enum class localtypes_t {type_string = 1};
+	HandleBuffer<string> stringBuffer(static_cast<int>(localtypes_t::type_string), 256);
+
 }
