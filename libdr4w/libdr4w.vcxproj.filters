@@ -126,6 +126,9 @@
     <ClInclude Include="..\include\dr4\dr4_handlemanager.h">
       <Filter>include/dr4w</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dr4\dr4_safehandlemanager.h">
+      <Filter>include/dr4w</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dr4_image.cpp">
